@@ -322,11 +322,11 @@ select.inp option{background:var(--bg3);}
     </div>
     <div style="padding:24px">
 
-      <!-- رابط يوتيوب -->
+      <!-- رابط الفيديو -->
       <div class="card">
-        <div class="card-title"><span class="card-title-icon">📺</span> رابط الفيديو</div>
+        <div class="card-title"><span class="card-title-icon">📺</span> الفيديو</div>
         <div class="field">
-          <label>رابط يوتيوب</label>
+          <label>رابط يوتيوب (مسجل أو بث مباشر)</label>
           <input class="inp" id="live-yt-url" placeholder="https://www.youtube.com/watch?v=...">
         </div>
         <div class="field">
@@ -338,21 +338,26 @@ select.inp option{background:var(--bg3);}
       <!-- نوع البث -->
       <div class="card">
         <div class="card-title"><span class="card-title-icon">⚙</span> نوع البث</div>
-        <div class="live-mode-grid">
-          <div class="mode-card mode-off active" id="mode-none" onclick="setMode('none')">
-            <div class="mode-icon">⏸</div>
-            <div class="mode-title">إيقاف</div>
-            <div class="mode-sub">لا يوجد بث الآن</div>
+        <div class="live-mode-grid" style="grid-template-columns:repeat(2,1fr)">
+          <div class="mode-card" id="mode-recorded" onclick="setMode('recorded')">
+            <div class="mode-icon">🎬</div>
+            <div class="mode-title">محتوى مسجل</div>
+            <div class="mode-sub">فيديو + ترجمة + صوت من ملفات</div>
           </div>
           <div class="mode-card" id="mode-sync" onclick="setMode('sync')">
             <div class="mode-icon">🔄</div>
             <div class="mode-title">لايف + تزامن</div>
-            <div class="mode-sub">صوت + نص من ملفات</div>
+            <div class="mode-sub">بث مباشر + ملفات ترجمة وصوت</div>
           </div>
           <div class="mode-card" id="mode-obs" onclick="setMode('obs')">
             <div class="mode-icon">📡</div>
             <div class="mode-title">لايف + OBS</div>
             <div class="mode-sub">نص من OBS + صوت يوتيوب</div>
+          </div>
+          <div class="mode-card mode-off" id="mode-none" onclick="setMode('none')">
+            <div class="mode-icon">⏸</div>
+            <div class="mode-title">إيقاف</div>
+            <div class="mode-sub">لا يوجد بث الآن</div>
           </div>
         </div>
       </div>
@@ -689,15 +694,18 @@ function updateLiveDash(s) {
 function setMode(mode, silent) {
   ST.mode = mode;
   if (!silent) renderAdminLangs();
-  ['none','sync','obs'].forEach(function(m) {
+  ['none','sync','obs','recorded'].forEach(function(m) {
     var el = document.getElementById('mode-'+m);
     if (el) el.classList.toggle('active', m === mode);
   });
-  var isLive = mode !== 'none';
+  var isActive = mode !== 'none';
   document.getElementById('obs-settings').style.display = mode === 'obs' ? 'block' : 'none';
-  document.getElementById('feedback-card').style.display = isLive ? 'block' : 'none';
-  document.getElementById('btn-stop-live').style.display = isLive ? 'inline-flex' : 'none';
-  document.getElementById('btn-start-live').style.display = isLive ? 'none' : 'inline-flex';
+  document.getElementById('feedback-card').style.display = isActive ? 'block' : 'none';
+  document.getElementById('btn-stop-live').style.display = isActive ? 'inline-flex' : 'none';
+  document.getElementById('btn-start-live').style.display = isActive ? 'none' : 'inline-flex';
+  // عنوان الزر
+  var startBtn = document.getElementById('btn-start-live');
+  if (startBtn) startBtn.textContent = mode === 'recorded' ? '▶ نشر المحتوى' : '▶ بدء البث';
 }
 
 function updateFeedback(v) {
@@ -760,8 +768,6 @@ function addAdminLang() {
 }
 
 function buildLangCard(l, i) {
-  var isObs = ST.mode === 'obs';
-  var isSync = ST.mode === 'sync';
   var card = document.createElement('div');
   card.className = 'lang-card'; card.id = 'alc-' + i;
   var inner = '<div class="lang-card-hdr">' +
@@ -770,17 +776,50 @@ function buildLangCard(l, i) {
     '<button class="lang-del" onclick="delAdminLang(' + i + ')">✕</button>' +
     '</div>';
 
-  if (isObs) {
-    inner += '<input class="lang-inp" placeholder="IP جهاز OBS — 192.168.1.x" value="' + (l.ip||'') + '" onchange="updateLangField(' + i + ',\'ip\',this.value)">';
+  if (ST.mode === 'obs') {
+    inner += '<input class="lang-inp" placeholder="IP جهاز المترجم — مثال: 192.168.1.10" value="' + (l.ip||'') + '" onchange="updateLangField(' + i + ',\'ip\',this.value)">';
     inner += '<input class="lang-inp" placeholder="اسم Text Source في OBS" value="' + (l.obs_source||'') + '" onchange="updateLangField(' + i + ',\'obs_source\',this.value)">';
     inner += '<input class="lang-inp" placeholder="رابط يوتيوب Unlisted للصوت" value="' + (l.yt_audio_url||'') + '" onchange="updateLangField(' + i + ',\'yt_audio_url\',this.value)">';
     inner += '<input class="lang-inp" placeholder="رابط Icecast (اختياري)" value="' + (l.icecast_url||'') + '" onchange="updateLangField(' + i + ',\'icecast_url\',this.value)">';
-  } else if (isSync) {
-    inner += '<input class="lang-inp" placeholder="رابط ملف الترجمة ASS/SRT" value="' + (l.subtitle_url||'') + '" onchange="updateLangField(' + i + ',\'subtitle_url\',this.value)">';
-    inner += '<input class="lang-inp" placeholder="رابط ملف الصوت" value="' + (l.yt_audio_url||'') + '" onchange="updateLangField(' + i + ',\'yt_audio_url\',this.value)">';
+  } else if (ST.mode === 'sync' || ST.mode === 'recorded') {
+    // رفع ملف ترجمة
+    inner += '<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">'
+      + '<button class="btn btn-gold btn-sm" onclick="document.getElementById(\'lsf-' + i + '\').click()">📂 ASS/SRT</button>'
+      + '<span id="lss-' + i + '" style="font-size:.7rem;color:var(--silver)">' + (l.subtitle_url ? '✅ مرفوع' : 'لم يُختر ملف') + '</span>'
+      + '<input type="file" id="lsf-' + i + '" accept=".ass,.ssa,.srt" style="display:none" onchange="uploadLiveLangFile(this,\'sub\',' + i + ')">'
+      + '<input type="hidden" id="lsu-' + i + '" value="' + (l.subtitle_url||'') + '">'
+      + '</div>';
+    // رفع ملف صوت
+    inner += '<div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">'
+      + '<button class="btn btn-gold btn-sm" onclick="document.getElementById(\'laf-' + i + '\').click()">🎵 صوت</button>'
+      + '<span id="las-' + i + '" style="font-size:.7rem;color:var(--silver)">' + (l.yt_audio_url ? '✅ مرفوع' : 'لم يُختر ملف') + '</span>'
+      + '<input type="file" id="laf-' + i + '" accept="audio/*" style="display:none" onchange="uploadLiveLangFile(this,\'aud\',' + i + ')">'
+      + '<input type="hidden" id="lau-' + i + '" value="' + (l.yt_audio_url||'') + '">'
+      + '</div>';
+  } else {
+    inner += '<div style="font-size:.7rem;color:rgba(255,255,255,.2);padding:6px 0">⚠ اختر نوع البث أولاً</div>';
   }
+
   card.innerHTML = inner;
   return card;
+}
+
+async function uploadLiveLangFile(inp, type, idx) {
+  if (!inp.files[0]) return;
+  var file = inp.files[0];
+  var sEl = document.getElementById((type==='sub'?'lss':'las')+'-'+idx);
+  var uEl = document.getElementById((type==='sub'?'lsu':'lau')+'-'+idx);
+  sEl.textContent = '⏳ جاري الرفع...'; sEl.style.color = 'var(--gold)';
+  try {
+    var bucket = type==='sub' ? 'subtitles' : 'audio';
+    var path = 'live/' + idx + '-' + Date.now() + '.' + file.name.split('.').pop();
+    var url = await supaUpload(bucket, path, file);
+    uEl.value = url;
+    if (ST.langs[idx]) ST.langs[idx][type==='sub'?'subtitle_url':'yt_audio_url'] = url;
+    sEl.textContent = '✅ ' + file.name; sEl.style.color = '#86efac';
+  } catch(e) {
+    sEl.textContent = '❌ فشل الرفع'; sEl.style.color = '#fca5a5';
+  }
 }
 
 function updateLangField(i, field, val) {
@@ -796,9 +835,19 @@ async function saveLiveLangs() {
   await supa('DELETE', 'live_langs', null, 'session_id=eq.1');
   if (!ST.langs.length) return;
   var rows = ST.langs.map(function(l, i) {
-    return { session_id: 1, name: l.name, ip: l.ip||'', obs_source: l.obs_source||'',
-      icecast_url: l.icecast_url||'', yt_audio_url: l.yt_audio_url||'',
-      subtitle_url: l.subtitle_url||'', sort_order: i };
+    // قراءة القيم من hidden inputs إن وجدت
+    var subUrl = document.getElementById('lsu-'+i);
+    var audUrl = document.getElementById('lau-'+i);
+    return {
+      session_id: 1,
+      name: l.name || '',
+      ip: l.ip||'',
+      obs_source: l.obs_source||'',
+      icecast_url: l.icecast_url||'',
+      yt_audio_url: audUrl ? audUrl.value : (l.yt_audio_url||''),
+      subtitle_url: subUrl ? subUrl.value : (l.subtitle_url||''),
+      sort_order: i
+    };
   });
   await supa('POST', 'live_langs', rows);
 }
@@ -932,10 +981,40 @@ function buildContentLangRow(l, i) {
       '<input class="lang-name-inp" placeholder="اسم اللغة" value="' + (l.name||'') + '">' +
       '<button class="lang-del" onclick="this.closest(\'.lang-card\').remove()">✕</button>' +
     '</div>' +
-    '<input class="lang-inp" placeholder="رابط ملف الترجمة ASS/SRT (من Supabase Storage)" value="' + (l.subtitle_url||'') + '">' +
-    '<input class="lang-inp" placeholder="رابط ملف الصوت MP3 (من Supabase Storage)" value="' + (l.audio_url||'') + '">' +
-    '<select class="lang-inp" style="margin-bottom:0"><option value="ass" ' + (l.subtitle_type==='ass'?'selected':'') + '>ASS</option><option value="srt" ' + (l.subtitle_type==='srt'?'selected':'') + '>SRT</option></select>' +
+    '<div style="display:flex;gap:8px;margin-bottom:6px">' +
+      '<label class="file-lbl" style="font-size:.7rem;padding:5px 10px;cursor:pointer" onclick="document.getElementById(\'sf-'+i+'\').click()">📂 ASS/SRT</label>' +
+      '<span class="upload-status" id="ss-' + i + '">' + (l.subtitle_url?'✅ مرفوع':'لم يُختر') + '</span>' +
+      '<input type="file" id="sf-' + i + '" accept=".ass,.ssa,.srt" style="display:none" onchange="uploadLF(this,\'sub\',' + i + ')">' +
+      '<input type="hidden" id="su-' + i + '" value="' + (l.subtitle_url||'') + '">' +
+    '</div>' +
+    '<div style="display:flex;gap:8px;margin-bottom:6px">' +
+      '<label class="file-lbl" style="font-size:.7rem;padding:5px 10px;cursor:pointer" onclick="document.getElementById(\'af-'+i+'\').click()">🎵 صوت</label>' +
+      '<span class="upload-status" id="as-' + i + '">' + (l.audio_url?'✅ مرفوع':'لم يُختر') + '</span>' +
+      '<input type="file" id="af-' + i + '" accept="audio/*" style="display:none" onchange="uploadLF(this,\'aud\',' + i + ')">' +
+      '<input type="hidden" id="au-' + i + '" value="' + (l.audio_url||'') + '">' +
+    '</div>' +
+    '<select class="lang-inp" id="st-' + i + '" style="margin-bottom:0">' +
+      '<option value="ass"' + (l.subtitle_type!=='srt'?' selected':'') + '>ASS</option>' +
+      '<option value="srt"' + (l.subtitle_type==='srt'?' selected':'') + '>SRT</option>' +
+    '</select>' +
     '</div>';
+}
+
+async function uploadLF(inp, type, idx) {
+  if (!inp.files[0]) return;
+  var file = inp.files[0];
+  var sEl = document.getElementById((type==='sub'?'ss':'as')+'-'+idx);
+  var uEl = document.getElementById((type==='sub'?'su':'au')+'-'+idx);
+  sEl.textContent = '⏳ جاري الرفع...'; sEl.style.color='var(--gold)';
+  try {
+    var bucket = type==='sub' ? 'subtitles' : 'audio';
+    var path = ST.editLangsContentId+'/'+idx+'-'+Date.now()+'.'+file.name.split('.').pop();
+    var url = await supaUpload(bucket, path, file);
+    uEl.value = url;
+    sEl.textContent = '✅ '+file.name; sEl.style.color='#86efac';
+  } catch(e) {
+    sEl.textContent = '❌ فشل'; sEl.style.color='#fca5a5';
+  }
 }
 
 function addContentLang() {
@@ -948,22 +1027,25 @@ async function saveContentLangs() {
   var cards = document.querySelectorAll('#clm-langs .lang-card');
   var rows = [];
   cards.forEach(function(card, i) {
-    var inps = card.querySelectorAll('.lang-name-inp, .lang-inp');
+    var name = card.querySelector('.lang-name-inp');
+    var su = card.querySelector('[id^="su-"]');
+    var au = card.querySelector('[id^="au-"]');
+    var st = card.querySelector('[id^="st-"]');
     rows.push({
       content_id: ST.editLangsContentId,
-      name: inps[0] ? inps[0].value : '',
-      subtitle_url: inps[1] ? inps[1].value : '',
-      audio_url: inps[2] ? inps[2].value : '',
-      subtitle_type: inps[3] ? inps[3].value : 'ass',
+      name: name ? name.value : '',
+      subtitle_url: su ? su.value : '',
+      audio_url: au ? au.value : '',
+      subtitle_type: st ? st.value : 'ass',
       sort_order: i
     });
   });
   try {
-    await supa('DELETE', 'content_langs', null, 'content_id=eq.' + ST.editLangsContentId);
+    await supa('DELETE', 'content_langs', null, 'content_id=eq.'+ST.editLangsContentId);
     if (rows.length) await supa('POST', 'content_langs', rows);
     toast('✅ تم حفظ اللغات', 'ok');
     closeLangsModal();
-  } catch(e) { toast('❌ ' + e.message, 'err'); }
+  } catch(e) { toast('❌ '+e.message, 'err'); }
 }
 
 // ══ Realtime ══
