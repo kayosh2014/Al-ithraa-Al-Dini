@@ -782,6 +782,10 @@ function buildLangCard(l, i) {
     inner += '<input class="lang-inp" placeholder="رابط يوتيوب Unlisted للصوت" value="' + (l.yt_audio_url||'') + '" onchange="updateLangField(' + i + ',\'yt_audio_url\',this.value)">';
     inner += '<input class="lang-inp" placeholder="رابط Icecast (اختياري)" value="' + (l.icecast_url||'') + '" onchange="updateLangField(' + i + ',\'icecast_url\',this.value)">';
   } else if (ST.mode === 'sync' || ST.mode === 'recorded') {
+    // رابط يوتيوب (فقط في recorded)
+    if (ST.mode === 'recorded') {
+      inner += '<input class="lang-inp" placeholder="رابط يوتيوب للفيديو — https://youtube.com/watch?v=..." value="' + (l.yt_video_url||'') + '" onchange="updateLangField(' + i + ',\'yt_video_url\',this.value)" style="margin-bottom:6px">';
+    }
     // رفع ملف ترجمة
     inner += '<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">'
       + '<button class="btn btn-gold btn-sm" onclick="document.getElementById(\'lsf-' + i + '\').click()">📂 ASS/SRT</button>'
@@ -846,6 +850,7 @@ async function saveLiveLangs() {
       icecast_url: l.icecast_url||'',
       yt_audio_url: audUrl ? audUrl.value : (l.yt_audio_url||''),
       subtitle_url: subUrl ? subUrl.value : (l.subtitle_url||''),
+      yt_video_url: l.yt_video_url||'',
       sort_order: i
     };
   });
