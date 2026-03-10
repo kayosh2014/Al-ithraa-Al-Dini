@@ -262,7 +262,6 @@ async function supa(table, params) {
 // ══ حالة ══
 var ST = {
   mode: 'none',       // none | sync | obs
-  syncStart: null,    // timestamp بدء التزامن
   session: null,
   langs: [],          // لغات البث
   playing: false,
@@ -380,22 +379,7 @@ async function loadPage(id) {
     var isLive = page.status === 'live';
     document.getElementById('live-badge').style.display = isLive ? 'flex' : 'none';
 
-    if (ST.mode === 'sync' || ST.mode === 'recorded') {
-      await loadSubtitleFiles();
-      // تحميل ملفات الصوت (audio_url)
-      ST.langs.forEach(function(l, i) {
-        if (l.audio_url) {
-          var a = new Audio(l.audio_url);
-          a.volume = 0;
-          a.preload = 'auto';
-          ST.audioEls[i] = a;
-        }
-      });
-    }
-    if (ST.mode === 'sync' && page.sync_start) {
-      var offset = (Date.now() - new Date(page.sync_start).getTime());
-      ST.syncStart = Date.now() - offset;
-    }
+    if (ST.mode === 'sync' || ST.mode === 'recorded') await loadSubtitleFiles();
     buildLangPanel();
     showPlayer();
     startCtrlHide();
@@ -658,12 +642,7 @@ function startLoop() {
       var t = ytPlayer.getCurrentTime();
       updateSeek(t);
       if (ST.activeSub >= 0 && ST.mode !== 'obs') {
-        if (ST.mode === 'sync' && ST.syncStart) {
-          var elapsed = (Date.now() - ST.syncStart) / 1000;
-          drawSubFromFile(elapsed);
-        } else if (ST.mode !== 'sync') {
-          drawSubFromFile(t);
-        }
+        drawSubFromFile(t);
       }
     }
     ST.rafId = requestAnimationFrame(loop);
@@ -743,10 +722,6 @@ function tapToPlay() {
 
 function togglePlay() {
   if (!ytPlayer) return;
-  if (ST.mode === 'sync' && ST.syncStart) {
-    toast('⚠ أوقف التزامن أولاً قبل الإيقاف المؤقت');
-    return;
-  }
   if (ST.playing) {
     ytPlayer.pauseVideo();
     document.getElementById('bs-txt').textContent = 'موقوف مؤقتاً';
@@ -861,15 +836,6 @@ function startRealtimePage(pageId) {
         // بدأ البث
         document.getElementById('no-live').classList.remove('show');
         loadPage(pageId);
-      }
-      // تحديث sync_start
-      if (typeof s.sync_start !== 'undefined') {
-        if (s.sync_start && ST.mode === 'sync') {
-          var off = Date.now() - new Date(s.sync_start).getTime();
-          ST.syncStart = Date.now() - off;
-        } else {
-          ST.syncStart = null;
-        }
       }
       // تحديث feedback
       if (s.feedback !== undefined) {
