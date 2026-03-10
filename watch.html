@@ -522,6 +522,16 @@ function connectAllOBS() {
   });
 }
 
+async function obsAuthenticate(pass, challenge, salt) {
+  // SHA256 حسب مواصفات OBS WebSocket v5
+  var enc = new TextEncoder();
+  var base64 = function(buf) { return btoa(String.fromCharCode(...new Uint8Array(buf))); };
+  var h1 = await crypto.subtle.digest('SHA-256', enc.encode(pass + salt));
+  var secret = base64(h1);
+  var h2 = await crypto.subtle.digest('SHA-256', enc.encode(secret + challenge));
+  return base64(h2);
+}
+
 function connectOBS(idx, ip, port, pass, source) {
   var url = 'ws://' + ip + ':' + port;
   var ws;
@@ -530,19 +540,39 @@ function connectOBS(idx, ip, port, pass, source) {
   var reqId = 0;
 
   ws.onopen = function() {
-    ws.send(JSON.stringify({ op:1, d:{ rpcVersion:1 } }));
     updateObsDot(idx, true);
   };
   ws.onmessage = function(e) {
     var msg = JSON.parse(e.data);
+    // op:0 = Hello
+    if (msg.op === 0) {
+      var d = { rpcVersion: 1 };
+      if (msg.d && msg.d.authentication && pass) {
+        obsAuthenticate(pass, msg.d.authentication.challenge, msg.d.authentication.salt).then(function(auth) {
+          d.authentication = auth;
+          ws.send(JSON.stringify({ op: 1, d: d }));
+        });
+      } else {
+        ws.send(JSON.stringify({ op: 1, d: d }));
+      }
+    }
+    // op:2 = Identified
     if (msg.op === 2) {
-      // hello — أرسل identify
-      ws.send(JSON.stringify({ op:3, d:{ rpcVersion:1 } }));
+      updateObsDot(idx, true);
+      // ابدأ polling بعد اتصال ناجح
+      startObsPoll(ws, idx, source, reqId);
     }
     if (msg.op === 5 && msg.d && msg.d.eventType === 'InputSettingsChanged') {
       var settings = msg.d.eventData && msg.d.eventData.inputSettings;
       if (settings && settings.text !== undefined) {
         ST.obsTexts[idx] = settings.text || '';
+        if (ST.activeSub === idx) drawSubText(ST.obsTexts[idx]);
+      }
+    }
+    if (msg.op === 7 && msg.d && msg.d.responseData) {
+      var t = msg.d.responseData.inputSettings && msg.d.responseData.inputSettings.text;
+      if (t !== undefined) {
+        ST.obsTexts[idx] = t || '';
         if (ST.activeSub === idx) drawSubText(ST.obsTexts[idx]);
       }
     }
@@ -552,26 +582,17 @@ function connectOBS(idx, ip, port, pass, source) {
     setTimeout(function() { connectOBS(idx, ip, port, pass, source); }, 5000);
   };
 
-  // polling كل 100ms
-  var poll = setInterval(function() {
-    if (ws.readyState !== 1) { clearInterval(poll); return; }
-    if (!source) return;
+}
+
+function startObsPoll(ws, idx, source, reqId) {
+  if (!source) return;
+  setInterval(function() {
+    if (ws.readyState !== 1) return;
     reqId++;
     ws.send(JSON.stringify({
       op:6, d:{ requestType:'GetInputSettings', requestId:'r'+reqId, requestData:{ inputName: source } }
     }));
-  }, 100);
-
-  ws.addEventListener('message', function(e) {
-    var msg = JSON.parse(e.data);
-    if (msg.op === 7 && msg.d && msg.d.responseData) {
-      var t = msg.d.responseData.inputSettings && msg.d.responseData.inputSettings.text;
-      if (t !== undefined) {
-        ST.obsTexts[idx] = t || '';
-        if (ST.activeSub === idx) drawSubText(ST.obsTexts[idx]);
-      }
-    }
-  });
+  }, 150);
 }
 
 function updateObsDot(idx, on) {
@@ -582,7 +603,7 @@ function updateObsDot(idx, on) {
 function loadYTAudio(idx, url) {
   var id = extractYTId(url); if (!id) return;
   var iframe = document.createElement('iframe');
-  iframe.src = 'https://www.youtube.com/embed/' + id + '?autoplay=0&controls=0';
+  iframe.src = 'https://www.youtube.com/embed/' + id + '?autoplay=1&mute=1&controls=0&playsinline=1';
   iframe.style.display = 'none'; iframe.id = 'yt-audio-' + idx;
   document.body.appendChild(iframe);
   var ytAud = null;
@@ -591,6 +612,7 @@ function loadYTAudio(idx, url) {
     clearInterval(t);
     ytAud = new YT.Player('yt-audio-' + idx, {
       events: { onReady: function(e) {
+        e.target.unMute();
         e.target.setVolume(0);
         ST.audioEls[idx] = e.target;
       }}
