@@ -136,10 +136,12 @@ body{background:var(--bg);color:var(--white);font-family:'Tajawal',sans-serif;}
 
 /* ══ black screen (موقوف / تحميل) ══ */
 #black-screen{position:absolute;inset:0;z-index:8;background:#000;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;}
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  cursor:pointer;}
 #black-screen.hide{display:none;}
-#black-screen svg{width:40px;height:40px;fill:rgba(255,255,255,.3);}
-#black-screen span{font-size:.8rem;color:rgba(255,255,255,.3);}
+#black-screen.paused #bs-play-btn{background:rgba(255,255,255,.08);}
+#black-screen span{font-size:.8rem;color:rgba(255,255,255,.4);letter-spacing:1px;}
+#bs-play-btn:hover{background:rgba(255,255,255,.22) !important;}
 #yt-frame{opacity:0;transition:opacity .3s;}
 
 /* ══ حالة الاتصال OBS ══ */
@@ -171,9 +173,16 @@ body{background:var(--bg);color:var(--white);font-family:'Tajawal',sans-serif;}
   <div id="yt-frame"></div>
   <canvas id="sub-canvas"></canvas>
   <div id="click-layer" onclick="togglePlay()"></div>
-  <div id="black-screen">
-    <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-    <span>موقوف مؤقتاً</span>
+  <div id="black-screen" onclick="tapToPlay()">
+    <div id="bs-play-btn" style="width:72px;height:72px;border-radius:50%;
+      background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.25);
+      display:flex;align-items:center;justify-content:center;margin-bottom:10px;
+      transition:background .2s;cursor:pointer;">
+      <svg viewBox="0 0 24 24" style="width:32px;height:32px;fill:#fff;margin-right:-3px">
+        <path d="M8 5v14l11-7z"/>
+      </svg>
+    </div>
+    <span id="bs-txt">اضغط للتشغيل</span>
   </div>
   <div id="obs-status"></div>
 
@@ -298,21 +307,24 @@ function createYTPlayer(videoId) {
         e.target.playVideo();
         ST.playing = true;
         updatePlayIcon();
-        document.getElementById('black-screen').classList.add('hide');
         startLoop();
       },
       onStateChange: function(e) {
         if (e.data === YT.PlayerState.PLAYING) {
           ST.playing=true; updatePlayIcon();
           document.getElementById('black-screen').classList.add('hide');
+          document.getElementById('black-screen').classList.remove('paused');
           document.getElementById('yt-frame').style.opacity='1';
         }
         if (e.data === YT.PlayerState.PAUSED) {
           ST.playing=false; updatePlayIcon();
+          document.getElementById('bs-txt').textContent = 'موقوف مؤقتاً';
           document.getElementById('black-screen').classList.remove('hide');
+          document.getElementById('black-screen').classList.add('paused');
         }
         if (e.data === YT.PlayerState.ENDED) {
           ST.playing=false; updatePlayIcon();
+          document.getElementById('bs-txt').textContent = 'انتهى الفيديو';
           document.getElementById('black-screen').classList.remove('hide');
         }
       }
@@ -702,10 +714,21 @@ function clearCanvas() {
 }
 
 // ══ seek / vol / play ══
+function tapToPlay() {
+  if (!ytPlayer) return;
+  ytPlayer.playVideo();
+  showControls();
+}
+
 function togglePlay() {
   if (!ytPlayer) return;
-  if (ST.playing) { ytPlayer.pauseVideo(); }
-  else { ytPlayer.playVideo(); }
+  if (ST.playing) {
+    ytPlayer.pauseVideo();
+    document.getElementById('bs-txt').textContent = 'موقوف مؤقتاً';
+    document.getElementById('black-screen').classList.add('paused');
+  } else {
+    ytPlayer.playVideo();
+  }
   updatePlayIcon();
   showControls();
 }
