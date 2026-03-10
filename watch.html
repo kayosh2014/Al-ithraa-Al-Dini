@@ -260,6 +260,8 @@ async function supa(table, params) {
 }
 
 // ══ حالة ══
+var SYNC = { running: false, startTime: null, pausedAt: 0 };
+
 var ST = {
   mode: 'none',       // none | sync | obs
   session: null,
@@ -315,6 +317,10 @@ function createYTPlayer(videoId) {
           document.getElementById('black-screen').classList.add('hide');
           document.getElementById('black-screen').classList.remove('paused');
           document.getElementById('yt-frame').style.opacity='1';
+          // استئناف SYNC
+          if (ST.mode === 'sync' && SYNC.running && !SYNC.startTime) {
+            SYNC.startTime = Date.now() - SYNC.pausedAt * 1000;
+          }
           // مزامنة الصوت
           if (ST.activeAudio >= 0) {
             var ael = ST.audioEls[ST.activeAudio];
@@ -327,6 +333,11 @@ function createYTPlayer(videoId) {
           document.getElementById('bs-txt').textContent = 'موقوف مؤقتاً';
           document.getElementById('black-screen').classList.remove('hide');
           document.getElementById('black-screen').classList.add('paused');
+          // إيقاف SYNC مؤقتاً
+          if (ST.mode === 'sync' && SYNC.running && SYNC.startTime) {
+            SYNC.pausedAt += (Date.now() - SYNC.startTime) / 1000;
+            SYNC.startTime = null;
+          }
           // إيقاف الصوت
           if (ST.activeAudio >= 0) {
             var ael = ST.audioEls[ST.activeAudio];
@@ -394,6 +405,17 @@ async function loadPage(id) {
     if (ST.mode === 'sync' || ST.mode === 'recorded') {
       await loadSubtitleFiles();
       loadAudioFiles();
+    }
+    // إذا كان sync وعنده sync_start — ابدأ التزامن
+    if (ST.mode === 'sync' && page.sync_start) {
+      var syncMs = new Date(page.sync_start).getTime();
+      var nowMs = Date.now();
+      var elapsed = (nowMs - syncMs) / 1000;
+      if (elapsed > 0) {
+        SYNC.running = true;
+        SYNC.pausedAt = elapsed;
+        SYNC.startTime = null; // سيُضبط عند PLAYING
+      }
     }
     buildLangPanel();
     showPlayer();
@@ -634,8 +656,17 @@ function setAudio(idx) {
   } else {
     var el = ST.audioEls[idx];
     if (el) {
-      if (typeof el.playVideo === 'function') { el.setVolume(ST.vol); el.playVideo(); }
-      else { el.volume = ST.vol/100; el.play().catch(function(){}); }
+      // مزامنة الوقت مع الفيديو
+      var currentT = (ytPlayer && ytPlayer.getCurrentTime) ? ytPlayer.getCurrentTime() : 0;
+      if (typeof el.seekTo === 'function') {
+        el.seekTo(currentT, true);
+        el.setVolume(ST.vol);
+        el.playVideo();
+      } else {
+        el.currentTime = currentT;
+        el.volume = ST.vol / 100;
+        el.play().catch(function(){});
+      }
     }
     // feedback — الصوت الأصلي في الخلفية
     if (ytPlayer && ytPlayer.setVolume) ytPlayer.setVolume(ST.feedback);
@@ -672,8 +703,17 @@ function startLoop() {
     if (ytPlayer && ytPlayer.getCurrentTime) {
       var t = ytPlayer.getCurrentTime();
       updateSeek(t);
-      if (ST.activeSub >= 0 && ST.mode !== 'obs') {
-        drawSubFromFile(t);
+      if (ST.activeSub >= 0) {
+        if (ST.mode === 'sync') {
+          // وضع متزامن — الوقت الحقيقي من sync_start
+          if (SYNC.running) {
+            var elapsed = SYNC.pausedAt + (SYNC.startTime ? (Date.now() - SYNC.startTime) / 1000 : 0);
+            drawSubFromFile(elapsed);
+          }
+        } else if (ST.mode !== 'obs') {
+          // وضع مسجل — وقت الفيديو
+          drawSubFromFile(t);
+        }
       }
     }
     ST.rafId = requestAnimationFrame(loop);
@@ -856,6 +896,19 @@ function startRealtimePage(pageId) {
     if (msg.event === 'UPDATE') {
       var s = msg.payload && msg.payload.record;
       if (!s || String(s.id) !== String(pageId)) return;
+      // تحديث sync_start لحظياً
+      if (s.sync_start && ST.mode === 'sync') {
+        var syncMs = new Date(s.sync_start).getTime();
+        var elapsed = (Date.now() - syncMs) / 1000;
+        if (elapsed >= 0) {
+          SYNC.running = true;
+          SYNC.startTime = Date.now() - elapsed * 1000;
+          SYNC.pausedAt = 0;
+        }
+      }
+      if (!s.sync_start && ST.mode === 'sync') {
+        SYNC.running = false; SYNC.startTime = null; SYNC.pausedAt = 0;
+      }
       // تغيير الحالة
       if (s.status === 'upcoming') {
         showNoLive('يبدأ البث قريباً', s.title_ar || '');

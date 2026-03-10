@@ -427,6 +427,18 @@ select.inp option{background:var(--bg3);}
           <div id="status-hint" style="font-size:.68rem;color:rgba(255,255,255,.25);margin-top:8px">
             الصفحة ستظهر للمشاهد لكن البث لم يبدأ بعد — شاشة انتظار
           </div>
+          <!-- زر التزامن — يظهر فقط لصفحات sync جارية -->
+          <div id="sync-ctrl-wrap" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+            <div style="font-size:.7rem;color:var(--silver);margin-bottom:10px">⚡ التحكم بالتزامن</div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <button class="btn btn-green" id="sync-start-btn" onclick="startSync()">▶ ابدأ التزامن</button>
+              <button class="btn btn-red" id="sync-stop-btn" style="display:none" onclick="stopSync()">⏹ أوقف التزامن</button>
+              <span id="sync-timer" style="font-size:.75rem;color:var(--gold);font-family:monospace"></span>
+            </div>
+            <div style="font-size:.62rem;color:rgba(255,255,255,.2);margin-top:6px">
+              عند الضغط تبدأ الترجمة تمشي مع الوقت الحقيقي عند المشاهد
+            </div>
+          </div>
         </div>
 
         <!-- ملفات محدّثة عند المنتهية -->
@@ -581,6 +593,7 @@ function setCat(cat,el){
   document.querySelectorAll('.type-chip').forEach(function(c){c.classList.remove('active');});
   if(el) el.classList.add('active');
   document.getElementById('obs-settings-wrap').style.display=cat==='obs'?'block':'none';
+  updateSyncCtrlVisibility();
   // أعد رسم بطاقات اللغات الموجودة بالنوع الجديد
   var wrap=document.getElementById('langs-wrap');
   var count=wrap.querySelectorAll('.lang-card').length||2;
@@ -600,6 +613,7 @@ function setStatus(status,el){
   };
   document.getElementById('status-hint').textContent=hints[status]||'';
   document.getElementById('ended-update-card').style.display=status==='ended'?'block':'none';
+  updateSyncCtrlVisibility();
 }
 
 // ══ بطاقات اللغات ══
@@ -883,6 +897,7 @@ async function editPage(id){
     if(!wrap.children.length){addLang();addLang();}
 
     showPage('create');
+    updateSyncCtrlVisibility();
   } catch(e){toast('❌ '+e.message,'err');}
 }
 
@@ -925,6 +940,45 @@ async function loadDashboard(){
       document.getElementById('dash-live-info').textContent='لا يوجد بث جارٍ';
     }
   } catch(e){}
+}
+
+// ══ SYNC ══
+var _syncTimer = null;
+
+function updateSyncCtrlVisibility() {
+  var cat = document.getElementById('f-cat').value;
+  var status = document.getElementById('f-status').value;
+  var wrap = document.getElementById('sync-ctrl-wrap');
+  if (wrap) wrap.style.display = (cat === 'sync' && status === 'live' && EDIT_ID) ? 'block' : 'none';
+}
+
+async function startSync() {
+  if (!EDIT_ID) return;
+  try {
+    var now = new Date().toISOString();
+    await db('PATCH', 'pages', { sync_start: now }, 'id=eq.' + EDIT_ID);
+    document.getElementById('sync-start-btn').style.display = 'none';
+    document.getElementById('sync-stop-btn').style.display = '';
+    var startMs = Date.now();
+    _syncTimer = setInterval(function() {
+      var s = Math.floor((Date.now() - startMs) / 1000);
+      var m = Math.floor(s / 60); s = s % 60;
+      document.getElementById('sync-timer').textContent = m + ':' + (s < 10 ? '0' : '') + s;
+    }, 1000);
+    toast('▶ بدأ التزامن', 'ok');
+  } catch(e) { toast('❌ ' + e.message, 'err'); }
+}
+
+async function stopSync() {
+  if (!EDIT_ID) return;
+  try {
+    await db('PATCH', 'pages', { sync_start: null }, 'id=eq.' + EDIT_ID);
+    document.getElementById('sync-start-btn').style.display = '';
+    document.getElementById('sync-stop-btn').style.display = 'none';
+    clearInterval(_syncTimer);
+    document.getElementById('sync-timer').textContent = '';
+    toast('⏹ توقف التزامن', 'ok');
+  } catch(e) { toast('❌ ' + e.message, 'err'); }
 }
 
 // ══ SETTINGS ══
