@@ -262,6 +262,7 @@ async function supa(table, params) {
 // ══ حالة ══
 var ST = {
   mode: 'none',       // none | sync | obs
+  syncStart: null,    // timestamp بدء التزامن
   session: null,
   langs: [],          // لغات البث
   playing: false,
@@ -380,6 +381,10 @@ async function loadPage(id) {
     document.getElementById('live-badge').style.display = isLive ? 'flex' : 'none';
 
     if (ST.mode === 'sync' || ST.mode === 'recorded') await loadSubtitleFiles();
+    if (ST.mode === 'sync' && page.sync_start) {
+      // syncStart = وقت بدء التزامن بالـ ms
+      ST.syncStart = new Date(page.sync_start).getTime();
+    }
     buildLangPanel();
     showPlayer();
     startCtrlHide();
@@ -642,7 +647,14 @@ function startLoop() {
       var t = ytPlayer.getCurrentTime();
       updateSeek(t);
       if (ST.activeSub >= 0 && ST.mode !== 'obs') {
-        drawSubFromFile(t);
+        if (ST.mode === 'sync') {
+          if (ST.syncStart) {
+            var elapsed = (Date.now() - ST.syncStart) / 1000;
+            drawSubFromFile(elapsed);
+          }
+        } else {
+          drawSubFromFile(t);
+        }
       }
     }
     ST.rafId = requestAnimationFrame(loop);
@@ -722,6 +734,10 @@ function tapToPlay() {
 
 function togglePlay() {
   if (!ytPlayer) return;
+  if (ST.mode === 'sync' && ST.syncStart) {
+    toast('⚠ أوقف التزامن أولاً قبل الإيقاف المؤقت');
+    return;
+  }
   if (ST.playing) {
     ytPlayer.pauseVideo();
     document.getElementById('bs-txt').textContent = 'موقوف مؤقتاً';
@@ -836,6 +852,14 @@ function startRealtimePage(pageId) {
         // بدأ البث
         document.getElementById('no-live').classList.remove('show');
         loadPage(pageId);
+      }
+      // تحديث sync_start
+      if (typeof s.sync_start !== 'undefined') {
+        if (s.sync_start && ST.mode === 'sync') {
+          ST.syncStart = new Date(s.sync_start).getTime();
+        } else {
+          ST.syncStart = null;
+        }
       }
       // تحديث feedback
       if (s.feedback !== undefined) {
