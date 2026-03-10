@@ -358,83 +358,65 @@ async function loadSettings() {
 // ══ فحص البث المباشر ══
 async function loadLive() {
   try {
-    var data = await supa('live_session','select=is_active,mode,title,yt_url&limit=1');
+    var data = await supa('pages','select=id,title_ar,title_en,yt_url,location&status=eq.live&order=updated_at.desc&limit=1');
     if (!data||!data[0]) return;
     var s = data[0];
-    if (s.is_active && s.mode !== 'none') {
-      document.getElementById('live-section').classList.add('show');
-      document.getElementById('live-pill').classList.add('show');
-      document.getElementById('hero-watch-btn').textContent = '▶ مشاهدة البث المباشر';
-      var ytId = extractYTId(s.yt_url);
-      var thumb = ytId
-        ? '<img src="https://img.youtube.com/vi/'+ytId+'/maxresdefault.jpg" style="width:100%;height:100%;object-fit:cover;opacity:.5">'
-        : '<div class="live-thumb-icon">📡</div>';
-      document.getElementById('live-card-wrap').innerHTML =
-        '<div class="live-card" onclick="window.location.href=\'watch.html\'">' +
-          '<div class="live-thumb">' + thumb +
-            '<div class="live-badge-red"><span style="width:5px;height:5px;border-radius:50%;background:#fff;display:inline-block;animation:blink 1s infinite"></span> LIVE</div>' +
-            '<div class="play-overlay"><div class="play-circle"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>' +
-          '</div>' +
-          '<div class="live-info"><div class="live-name">'+(s.title||'بث مباشر')+'</div>' +
-          '<div class="live-meta"><span>بث مباشر الآن</span></div></div>' +
-        '</div>';
-    }
+    document.getElementById('live-section').classList.add('show');
+    document.getElementById('live-pill').classList.add('show');
+    document.getElementById('hero-watch-btn').textContent = '▶ مشاهدة البث المباشر';
+    var ytId = extractYTId(s.yt_url);
+    var thumb = ytId
+      ? '<img src="https://img.youtube.com/vi/'+ytId+'/maxresdefault.jpg" style="width:100%;height:100%;object-fit:cover;opacity:.5">'
+      : '<div class="live-thumb-icon">📡</div>';
+    document.getElementById('live-card-wrap').innerHTML =
+      '<div class="live-card" onclick="window.location.href=\'watch.html?page='+s.id+'\'">' +
+        '<div class="live-thumb">' + thumb +
+          '<div class="live-badge-red"><span style="width:5px;height:5px;border-radius:50%;background:#fff;display:inline-block;animation:blink 1s infinite"></span> LIVE</div>' +
+          '<div class="play-overlay"><div class="play-circle"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>' +
+        '</div>' +
+        '<div class="live-info"><div class="live-name">'+(s.title_ar||s.title_en||'بث مباشر')+'</div>' +
+        '<div class="live-meta"><span>بث مباشر الآن</span>'+(s.location?' · '+s.location:'')+'</div></div>' +
+      '</div>';
   } catch(e) {}
 }
 
-// ══ تحميل المحتوى ══
+// ══ تحميل المحتوى المسجل/المنتهي ══
 async function loadContent() {
   try {
-    var data = await supa('content','select=*&is_published=eq.true&order=created_at.desc');
-    var videos = (data||[]).filter(function(x){return x.type==='video';});
-    var audios = (data||[]).filter(function(x){return x.type==='audio';});
+    var data = await supa('pages','select=id,title_ar,title_en,yt_url,broadcast_type,location,status,category&status=in.(ended,recorded)&order=created_at.desc');
+    var pages = data || [];
 
-    // إحصائيات
-    document.getElementById('hero-stat-content').textContent = data ? data.length : '٠';
+    document.getElementById('hero-stat-content').textContent = pages.length || '٠';
 
-    // فيديوهات
     var vr = document.getElementById('videos-row');
-    if (!videos.length) {
+    if (!pages.length) {
       document.getElementById('videos-empty').style.display = 'block';
     } else {
-      videos.forEach(function(v) {
-        var thumb = v.yt_id
-          ? '<img src="https://img.youtube.com/vi/'+v.yt_id+'/mqdefault.jpg" alt="" loading="lazy">'
+      pages.forEach(function(v) {
+        var ytId = extractYTId(v.yt_url);
+        var thumb = ytId
+          ? '<img src="https://img.youtube.com/vi/'+ytId+'/mqdefault.jpg" alt="" loading="lazy">'
           : '<div class="video-thumb-icon">📹</div>';
         var card = document.createElement('div');
         card.className = 'video-card';
-        card.onclick = function(){ window.location.href = 'watch.html?content='+v.id; };
+        card.onclick = function(){ window.location.href = 'watch.html?page='+v.id; };
         card.innerHTML =
           '<div class="video-thumb">'+thumb+
-            (v.duration?'<div class="video-duration">'+v.duration+'</div>':'')+
             '<div class="play-overlay"><div class="play-circle"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>'+
           '</div>'+
           '<div class="video-info">'+
-            '<div class="video-title">'+v.title+'</div>'+
+            '<div class="video-title">'+(v.title_ar||v.title_en||'—')+'</div>'+
             '<div class="video-meta">'+
-              (v.category?'<span class="video-cat">'+v.category+'</span>':'')+
-            '</div>'+
+              (v.broadcast_type?'<span class="video-cat">'+v.broadcast_type+'</span>':'')+
+              (v.location?' · '+v.location:'')+'</div>'+
           '</div>';
         vr.appendChild(card);
       });
     }
 
-    // صوتيات
-    var ar = document.getElementById('audio-row');
-    if (!audios.length) {
-      document.getElementById('audio-empty').style.display = 'block';
-    } else {
-      audios.forEach(function(a) {
-        var card = document.createElement('div');
-        card.className = 'audio-card';
-        card.onclick = function(){ window.location.href = 'watch.html?content='+a.id; };
-        card.innerHTML =
-          '<div class="audio-icon">🎙</div>'+
-          '<div class="audio-title">'+a.title+'</div>'+
-          '<div class="audio-meta">'+(a.category||'')+(a.duration?' · '+a.duration:'')+'</div>';
-        ar.appendChild(card);
-      });
-    }
+    // إخفاء قسم الصوتيات — كل شيء الآن في pages
+    var audioSection = document.getElementById('audio-section');
+    if (audioSection) audioSection.style.display = 'none';
   } catch(e) {}
 }
 

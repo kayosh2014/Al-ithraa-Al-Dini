@@ -316,99 +316,85 @@ window.addEventListener('load', function() {
 });
 
 async function initWatch() {
-  // قراءة URL params
   var params = new URLSearchParams(window.location.search);
-  ST.contentId = params.get('content');
-
-  if (ST.contentId) {
-    // محتوى مسجل محدد
-    await loadRecordedContent(ST.contentId);
+  var pageId = params.get('page');
+  if (pageId) {
+    await loadPage(pageId);
   } else {
-    // فحص البث المباشر
-    await checkLiveSession();
+    // بدون ID — ابحث عن أي صفحة جارية
+    await checkLivePage();
   }
 }
 
-// ══ محتوى مسجل ══
-async function loadRecordedContent(id) {
+// ══ تحميل صفحة بـ ID ══
+async function loadPage(id) {
   try {
-    setLoaderTxt('جاري تحميل المحتوى...');
-    var data = await supa('content', 'select=*&id=eq.' + id + '&limit=1');
-    if (!data || !data[0]) { showNoLive('المحتوى غير موجود', ''); return; }
-    var item = data[0];
+    setLoaderTxt('جاري تحميل الصفحة...');
+    var data = await supa('pages', 'select=*&id=eq.' + id + '&limit=1');
+    if (!data || !data[0]) { showNoLive('الصفحة غير موجودة', ''); return; }
+    var page = data[0];
 
-    var langs = await supa('content_langs', 'select=*&content_id=eq.' + id + '&order=sort_order');
+    var langs = await supa('page_langs', 'select=*&page_id=eq.' + id + '&order=sort_order');
     ST.langs = langs || [];
-    ST.mode = 'recorded';
-    ST.session = { title: item.title, yt_url: '', feedback: 0 };
+    ST.session = page;
+    ST.feedback = page.feedback || 0;
 
-    document.getElementById('watch-title').textContent = item.title;
-    document.getElementById('live-badge').style.display = 'none';
-
-    // تحميل ملفات الترجمة
-    await loadSubtitleFiles();
-    buildLangPanel();
-    showPlayer();
-    startCtrlHide();
-
-    if (item.yt_id) {
-      var ytId = item.yt_id;
-      if (ytReady) createYTPlayer(ytId);
-      else ST._pendingId = ytId;
-    } else if (item.audio_url) {
-      // صوت فقط
-      var audio = new Audio(item.audio_url);
-      audio.volume = ST.vol / 100;
-      ST._mainAudio = audio;
-      audio.play().catch(function(){});
-      ST.playing = true;
-    }
-    hideLoader();
-  } catch(e) { showNoLive('خطأ في التحميل', e.message); }
-}
-
-// ══ فحص البث المباشر ══
-async function checkLiveSession() {
-  try {
-    setLoaderTxt('جاري الاتصال...');
-    var data = await supa('live_session', 'select=*&limit=1');
-    if (!data || !data[0] || !data[0].is_active || data[0].mode === 'none') {
+    // تحديد الوضع
+    if (page.status === 'upcoming') {
       hideLoader();
-      showNoLive('لا يوجد بث مباشر حالياً', 'سيبدأ البث قريباً — يُرجى الانتظار');
-      startPollingLive(); // استمر في الفحص كل 10 ثواني
+      showNoLive('يبدأ البث قريباً', page.title_ar || '');
+      startRealtimePage(id);
       return;
     }
-    var session = data[0];
-    ST.session = session;
-    ST.mode = session.mode;
-    ST.feedback = session.feedback || 0;
+    if (page.status === 'ended' || page.status === 'recorded') {
+      ST.mode = 'recorded';
+    } else {
+      ST.mode = page.category || 'sync'; // live → sync أو obs
+    }
 
-    var langs = await supa('live_langs', 'select=*&session_id=eq.1&order=sort_order');
-    ST.langs = langs || [];
+    document.getElementById('watch-title').textContent = page.title_ar || page.title_en || 'بث مباشر';
+    var isLive = page.status === 'live';
+    document.getElementById('live-badge').style.display = isLive ? 'flex' : 'none';
 
-    document.getElementById('watch-title').textContent = session.title || 'بث مباشر';
-    document.getElementById('live-badge').style.display = 'flex';
-
-    if (ST.mode === 'sync') await loadSubtitleFiles();
+    if (ST.mode === 'sync' || ST.mode === 'recorded') await loadSubtitleFiles();
     buildLangPanel();
     showPlayer();
     startCtrlHide();
 
-    var ytId = extractYTId(session.yt_url);
+    var ytId = extractYTId(page.yt_url);
     if (ytId) {
       if (ytReady) createYTPlayer(ytId);
       else ST._pendingId = ytId;
     }
-
     if (ST.mode === 'obs') connectAllOBS();
 
     hideLoader();
-    startRealtimeSession();
+    if (isLive) startRealtimePage(id);
+  } catch(e) {
+    hideLoader();
+    showNoLive('خطأ في التحميل', e.message);
+  }
+}
+
+// ══ بحث عن صفحة جارية ══
+async function checkLivePage() {
+  try {
+    setLoaderTxt('جاري الاتصال...');
+    var data = await supa('pages', 'select=*&status=eq.live&order=updated_at.desc&limit=1');
+    if (!data || !data[0]) {
+      hideLoader();
+      showNoLive('لا يوجد بث مباشر حالياً', 'سيبدأ البث قريباً — يُرجى الانتظار');
+      startPollingLive();
+      return;
+    }
+    await loadPage(data[0].id);
   } catch(e) {
     hideLoader();
     showNoLive('خطأ في الاتصال', 'تأكد من اتصالك بالإنترنت');
   }
 }
+
+// ══ تم نقل المنطق إلى loadPage و checkLivePage ══
 
 // ══ تحميل ملفات الترجمة ══
 async function loadSubtitleFiles() {
@@ -480,8 +466,8 @@ function buildLangPanel() {
 
 // ══ OBS WebSocket ══
 function connectAllOBS() {
-  var port = ST.session.obs_port || '4455';
-  var pass = ST.session.obs_pass || '';
+  var port = ST.session.obs_port || ST.session.obsPort || '4455';
+  var pass = ST.session.obs_pass || ST.session.obsPass || '';
   ST.langs.forEach(function(l, i) {
     if (!l.ip) return;
     connectOBS(i, l.ip, port, pass, l.obs_source);
@@ -792,21 +778,29 @@ function switchLpTab(type, el) {
   document.getElementById('sec-'+type).classList.add('active');
 }
 
-// ══ Realtime ══
-function startRealtimeSession() {
+// ══ Realtime — يستمع لتغييرات الصفحة ══
+function startRealtimePage(pageId) {
   var url = SUPA_URL.replace('https://','wss://') + '/realtime/v1/websocket?apikey=' + SUPA_KEY + '&vsn=1.0.0';
   var ws = new WebSocket(url);
   ws.onopen = function() {
-    ws.send(JSON.stringify({ topic:'realtime:public:live_session', event:'phx_join', payload:{}, ref:'1' }));
+    ws.send(JSON.stringify({ topic:'realtime:public:pages', event:'phx_join', payload:{}, ref:'1' }));
   };
   ws.onmessage = function(e) {
     var msg = JSON.parse(e.data);
     if (msg.event === 'UPDATE') {
       var s = msg.payload && msg.payload.record;
-      if (!s) return;
-      if (!s.is_active || s.mode === 'none') {
+      if (!s || String(s.id) !== String(pageId)) return;
+      // تغيير الحالة
+      if (s.status === 'upcoming') {
+        showNoLive('يبدأ البث قريباً', s.title_ar || '');
+        document.getElementById('player-wrap').style.display = 'none';
+      } else if (s.status === 'ended' || s.status === 'recorded') {
         showNoLive('انتهى البث', 'شكراً لمتابعتكم');
         document.getElementById('player-wrap').style.display = 'none';
+      } else if (s.status === 'live') {
+        // بدأ البث
+        document.getElementById('no-live').classList.remove('show');
+        loadPage(pageId);
       }
       // تحديث feedback
       if (s.feedback !== undefined) {
@@ -815,21 +809,21 @@ function startRealtimeSession() {
       }
     }
   };
-  ws.onclose = function() { setTimeout(startRealtimeSession, 5000); };
+  ws.onclose = function() { setTimeout(function(){ startRealtimePage(pageId); }, 5000); };
 }
 
-// ══ polling البث كل 10 ثواني (عند عدم وجود بث) ══
+// ══ polling البث كل 10 ثواني ══
 var _pollTimer;
 function startPollingLive() {
   clearInterval(_pollTimer);
   _pollTimer = setInterval(async function() {
     try {
-      var data = await supa('live_session', 'select=is_active,mode&limit=1');
-      if (data && data[0] && data[0].is_active && data[0].mode !== 'none') {
+      var data = await supa('pages', 'select=id&status=eq.live&limit=1');
+      if (data && data[0]) {
         clearInterval(_pollTimer);
         document.getElementById('no-live').classList.remove('show');
         document.getElementById('loader').classList.remove('hide');
-        await checkLiveSession();
+        await loadPage(data[0].id);
       }
     } catch(e) {}
   }, 10000);
