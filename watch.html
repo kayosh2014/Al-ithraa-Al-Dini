@@ -412,7 +412,10 @@ async function loadPage(id) {
       if (ytReady) createYTPlayer(ytId);
       else ST._pendingId = ytId;
     }
-    if (ST.mode === 'obs') connectAllOBS();
+    if (ST.mode === 'obs') {
+    // اشترك في تغييرات page_langs لقراءة obs_text
+    startObsRealtime();
+  }
 
     hideLoader();
     if (isLive) startRealtimePage(id);
@@ -511,6 +514,33 @@ function buildLangPanel() {
 }
 
 // ══ OBS WebSocket ══
+function startObsRealtime() {
+  // Realtime على page_langs — يقرأ obs_text الذي يرسله admin من OBS
+  var pageId = ST.session && ST.session.id;
+  if (!pageId) return;
+  var url = SUPA_URL.replace('https','wss') + '/realtime/v1/websocket?apikey=' + SUPA_KEY + '&vsn=1.0.0';
+  var ws = new WebSocket(url);
+  ws.onopen = function() {
+    ws.send(JSON.stringify({ topic:'realtime:public:page_langs:page_id=eq.'+pageId, event:'phx_join', payload:{}, ref:'obs1' }));
+  };
+  ws.onmessage = function(e) {
+    var msg = JSON.parse(e.data);
+    if (msg.event === 'postgres_changes' || (msg.payload && msg.payload.data)) {
+      var row = msg.payload && msg.payload.data && msg.payload.data.record;
+      if (!row) return;
+      var idx = ST.langs.findIndex(function(l){ return l.id === row.id; });
+      if (idx < 0) return;
+      if (row.obs_text !== undefined) {
+        ST.obsTexts[idx] = row.obs_text || '';
+        if (ST.activeSub === idx) drawSubText(ST.obsTexts[idx]);
+      }
+    }
+    // heartbeat
+    if (msg.event === 'phx_reply') ws.send(JSON.stringify({ topic:'phoenix', event:'heartbeat', payload:{}, ref:'hb' }));
+  };
+  ws.onclose = function() { setTimeout(startObsRealtime, 5000); };
+}
+
 function connectAllOBS() {
   var port = ST.session.obs_port || ST.session.obsPort || '4455';
   var pass = ST.session.obs_pass || ST.session.obsPass || '';
