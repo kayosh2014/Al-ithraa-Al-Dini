@@ -134,12 +134,14 @@ body{background:var(--bg);color:var(--white);font-family:'Tajawal',sans-serif;}
   opacity:0;transition:all .3s;pointer-events:none;z-index:300;white-space:nowrap;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-/* ══ black screen (موقوف) ══ */
-#black-screen{position:absolute;inset:0;z-index:8;background:rgba(0,0,0,.85);
-  display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;}
-#black-screen.show{display:flex;}
+/* ══ black screen (موقوف / تحميل) ══ */
+#black-screen{position:absolute;inset:0;z-index:8;background:#000;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;}
+#black-screen.hide{display:none;}
 #black-screen svg{width:40px;height:40px;fill:rgba(255,255,255,.3);}
 #black-screen span{font-size:.8rem;color:rgba(255,255,255,.3);}
+/* إخفاء iframe يوتيوب تماماً حين الشاشة السوداء مرئية */
+#yt-frame{visibility:visible;}
 
 /* ══ حالة الاتصال OBS ══ */
 #obs-status{position:absolute;top:60px;right:12px;z-index:15;
@@ -297,13 +299,22 @@ function createYTPlayer(videoId) {
         e.target.playVideo();
         ST.playing = true;
         updatePlayIcon();
-        document.getElementById('black-screen').classList.remove('show');
+        document.getElementById('black-screen').classList.add('hide');
         startLoop();
       },
       onStateChange: function(e) {
-        if (e.data === YT.PlayerState.PLAYING) { ST.playing=true; updatePlayIcon(); }
-        if (e.data === YT.PlayerState.PAUSED)  { ST.playing=false; updatePlayIcon(); }
-        if (e.data === YT.PlayerState.ENDED)   { ST.playing=false; updatePlayIcon(); }
+        if (e.data === YT.PlayerState.PLAYING) {
+          ST.playing=true; updatePlayIcon();
+          document.getElementById('black-screen').classList.add('hide');
+        }
+        if (e.data === YT.PlayerState.PAUSED) {
+          ST.playing=false; updatePlayIcon();
+          document.getElementById('black-screen').classList.remove('hide');
+        }
+        if (e.data === YT.PlayerState.ENDED) {
+          ST.playing=false; updatePlayIcon();
+          document.getElementById('black-screen').classList.remove('hide');
+        }
       }
     }
   });
@@ -645,7 +656,8 @@ function drawSubText(text) {
   if (!text || !text.trim()) return;
 
   var fontSize = Math.round(canvas.height * 0.038);
-  ctx.font = 'bold ' + fontSize + 'px Tajawal, Arial';
+  ctx.font = 'bold ' + fontSize + 'px Tajawal, Arial, sans-serif';
+  ctx.direction = 'rtl';
   ctx.textAlign = 'center';
   var maxW = canvas.width * 0.82;
   var lineH = fontSize * 1.55;
@@ -692,8 +704,8 @@ function clearCanvas() {
 // ══ seek / vol / play ══
 function togglePlay() {
   if (!ytPlayer) return;
-  if (ST.playing) { ytPlayer.pauseVideo(); ST.playing=false; document.getElementById('black-screen').classList.add('show'); }
-  else { ytPlayer.playVideo(); ST.playing=true; document.getElementById('black-screen').classList.remove('show'); }
+  if (ST.playing) { ytPlayer.pauseVideo(); }
+  else { ytPlayer.playVideo(); }
   updatePlayIcon();
   showControls();
 }
