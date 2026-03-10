@@ -380,7 +380,18 @@ async function loadPage(id) {
     var isLive = page.status === 'live';
     document.getElementById('live-badge').style.display = isLive ? 'flex' : 'none';
 
-    if (ST.mode === 'sync' || ST.mode === 'recorded') await loadSubtitleFiles();
+    if (ST.mode === 'sync' || ST.mode === 'recorded') {
+      await loadSubtitleFiles();
+      // تحميل ملفات الصوت (audio_url)
+      ST.langs.forEach(function(l, i) {
+        if (l.audio_url) {
+          var a = new Audio(l.audio_url);
+          a.volume = 0;
+          a.preload = 'auto';
+          ST.audioEls[i] = a;
+        }
+      });
+    }
     if (ST.mode === 'sync' && page.sync_start) {
       var offset = (Date.now() - new Date(page.sync_start).getTime());
       ST.syncStart = Date.now() - offset;
