@@ -412,7 +412,7 @@ async function loadPage(id) {
       if (ytReady) createYTPlayer(ytId);
       else ST._pendingId = ytId;
     }
-    if (ST.mode === 'obs') connectAllOBS();
+    if (ST.mode === 'obs') startObsRealtime(id);
 
     hideLoader();
     if (isLive) startRealtimePage(id);
@@ -511,6 +511,35 @@ function buildLangPanel() {
 }
 
 // ══ OBS WebSocket ══
+// ══ OBS Realtime — يقرأ obs_text من Supabase ══
+function startObsRealtime(pageId) {
+  var url = SUPA_URL.replace('https','wss') + '/realtime/v1/websocket?apikey=' + SUPA_KEY + '&vsn=1.0.0';
+  var ws = new WebSocket(url);
+  var joined = false;
+  ws.onopen = function() {
+    ws.send(JSON.stringify({ topic:'realtime:public:page_langs:page_id=eq.'+pageId, event:'phx_join', payload:{config:{broadcast:{self:true},presence:{key:''},postgres_changes:[{event:'UPDATE',schema:'public',table:'page_langs',filter:'page_id=eq.'+pageId}]}}, ref:'1' }));
+  };
+  ws.onmessage = function(e) {
+    var msg = JSON.parse(e.data);
+    // heartbeat
+    if (msg.event === 'heartbeat') {
+      ws.send(JSON.stringify({ topic:'phoenix', event:'heartbeat', payload:{}, ref:'hb' }));
+    }
+    // تغيير في page_langs
+    if (msg.event === 'postgres_changes') {
+      var record = msg.payload && msg.payload.data && msg.payload.data.record;
+      if (!record) return;
+      var idx = ST.langs.findIndex(function(l){ return l.id === record.id; });
+      if (idx < 0) return;
+      if (record.obs_text !== undefined) {
+        ST.obsTexts[idx] = record.obs_text || '';
+        if (ST.activeSub === idx) drawSubText(ST.obsTexts[idx]);
+      }
+    }
+  };
+  ws.onclose = function() { setTimeout(function(){ startObsRealtime(pageId); }, 4000); };
+}
+
 // ══ SHA256 للـ OBS Authentication ══
 function sha256b64(str) {
   return crypto.subtle.digest('SHA-256', new TextEncoder().encode(str))

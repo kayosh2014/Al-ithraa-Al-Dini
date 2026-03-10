@@ -841,8 +841,8 @@ async function loadPagesTable(){
               '<button class="btn btn-green btn-sm sync-btn" data-id="'+p.id+'" onclick="quickSync('+p.id+',this)" title="ابدأ التزامن">⚡ تزامن</button>'
             ) : '')+
           (p.category==='obs'&&p.status==='live' ?
-            '<button class="btn btn-sm obs-conn-btn" id="obs-btn-'+p.id+'" onclick="openObsPanel('+p.id+',this)" title="اتصال OBS" style="background:#f97316;color:#fff">📡 OBS</button>'
-          : '')+ 
+            '<button class="btn btn-sm" id="obs-btn-'+p.id+'" onclick="openObsPanel('+p.id+')" style="background:#f97316;color:#fff">📡 OBS</button>'
+          : '')+
           '<button class="btn btn-red btn-sm" onclick="deletePage('+p.id+')">🗑</button>'+
         '</div></td>';
       tbody.appendChild(tr);
@@ -1045,52 +1045,62 @@ window.addEventListener('load',function(){
 });
 </script>
 
-<!-- نافذة OBS -->
-<div id="obs-panel" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;">
-  <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;width:360px;max-width:90vw;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+<!-- ══ نافذة OBS ══ -->
+<div id="obs-panel" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;width:380px;max-width:92vw;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
       <h3 style="margin:0;color:var(--gold)">📡 اتصال OBS</h3>
-      <button onclick="closeObsPanel()" style="background:none;border:none;color:var(--silver);font-size:1.2rem;cursor:pointer">✕</button>
+      <button onclick="closeObsPanel()" style="background:none;border:none;color:var(--silver);font-size:1.3rem;cursor:pointer">✕</button>
     </div>
     <div id="obs-langs-list" style="display:flex;flex-direction:column;gap:10px"></div>
-    <div id="obs-status" style="margin-top:14px;font-size:.8rem;color:var(--silver);text-align:center"></div>
+    <div id="obs-status" style="margin-top:14px;font-size:.8rem;color:var(--silver);min-height:20px;text-align:center"></div>
   </div>
 </div>
 
 <script>
-var _obsConnections = {}; // pageId_langIdx -> { ws, source, pageId, langIdx }
+// ══ OBS Admin Panel ══
+var _obsConns = {}; // key -> { ws, lang, page, poll }
 
-async function obsAdminAuth(pass, challenge, salt) {
-  var enc = new TextEncoder();
-  var b64 = function(buf){ return btoa(String.fromCharCode(...new Uint8Array(buf))); };
-  var h1 = await crypto.subtle.digest('SHA-256', enc.encode(pass + salt));
-  var h2 = await crypto.subtle.digest('SHA-256', enc.encode(b64(h1) + challenge));
-  return b64(h2);
+function sha256b64(str) {
+  return crypto.subtle.digest('SHA-256', new TextEncoder().encode(str))
+    .then(function(buf){ return btoa(String.fromCharCode.apply(null, new Uint8Array(buf))); });
 }
 
-function openObsPanel(pageId, btn) {
-  // جلب بيانات الصفحة
-  var page = _pages.find(function(p){ return p.id === pageId; });
-  if (!page) return;
-  var langs = _langs.filter(function(l){ return l.page_id === pageId && l.ip; });
-  if (!langs.length) { toast('لا توجد لغات بـ IP محدد','err'); return; }
+async function openObsPanel(pageId) {
+  // جلب بيانات الصفحة واللغات
+  var page = null;
+  var langs = [];
+  try {
+    var pd = await db('GET','pages',null,'select=*&id=eq.'+pageId);
+    page = pd && pd[0];
+    langs = await db('GET','page_langs',null,'select=*&page_id=eq.'+pageId+'&order=sort_order');
+  } catch(e) { toast('❌ خطأ في جلب البيانات','err'); return; }
+
+  var hasIp = (langs||[]).filter(function(l){ return l.ip; });
+  if (!hasIp.length) { toast('لا توجد لغات بـ IP — أضف IP في تعديل الصفحة','err'); return; }
 
   document.getElementById('obs-panel').style.display = 'flex';
   document.getElementById('obs-status').textContent = '';
   var list = document.getElementById('obs-langs-list');
   list.innerHTML = '';
 
-  langs.forEach(function(l, i) {
+  hasIp.forEach(function(l) {
     var key = pageId + '_' + l.id;
-    var conn = _obsConnections[key];
+    var conn = _obsConns[key];
     var isOn = conn && conn.ws && conn.ws.readyState === 1;
-    var row = document.createElement('div');
-    row.style.cssText = 'display:flex;align-items:center;gap:10px;background:var(--bg);padding:10px;border-radius:8px;';
-    row.innerHTML =
-      '<span style="flex:1;font-size:.85rem">' + (l.name||'لغة') + '<br><span style="color:var(--silver);font-size:.72rem">' + l.ip + ':' + (page.obs_port||'4455') + '</span></span>' +
-      '<span id="obs-dot-admin-'+key+'" style="width:8px;height:8px;border-radius:50%;background:'+(isOn?'#22c55e':'#666')+'"></span>' +
-      '<button id="obs-conn-'+key+'" onclick="toggleObsConn(''+key+'','+pageId+',''+l.ip+'','+(page.obs_port||4455)+',''+(page.obs_pass||'')+'',' + JSON.stringify(l.obs_source||'') + ','+l.id+')" style="padding:5px 12px;border-radius:6px;border:none;cursor:pointer;font-size:.8rem;background:'+(isOn?'#ef4444':'#22c55e')+';color:#fff">'+(isOn?'قطع':'اتصال')+'</button>';
-    list.appendChild(row);
+    var div = document.createElement('div');
+    div.style.cssText = 'display:flex;align-items:center;gap:10px;background:var(--bg);padding:10px 14px;border-radius:8px;';
+    div.innerHTML =
+      '<div style="flex:1">' +
+        '<div style="font-size:.85rem;font-weight:500">' + (l.name||'لغة') + '</div>' +
+        '<div style="font-size:.7rem;color:var(--silver)">' + l.ip + ':' + (page.obs_port||'4455') + ' — ' + (l.obs_source||'—') + '</div>' +
+      '</div>' +
+      '<span id="odot-'+key+'" style="width:9px;height:9px;border-radius:50%;background:'+(isOn?'#22c55e':'#555')+';flex-shrink:0"></span>' +
+      '<button id="obtn-'+key+'" onclick="toggleObs(''+key+'','+pageId+',''+l.ip+'',''+( page.obs_port||'4455')+'',''+( page.obs_pass||'')+'','+JSON.stringify(l.obs_source||'')+','+l.id+')" ' +
+        'style="padding:5px 14px;border-radius:6px;border:none;cursor:pointer;font-size:.8rem;font-weight:600;background:'+(isOn?'#ef4444':'#22c55e')+';color:#fff">' +
+        (isOn?'قطع':'اتصال') +
+      '</button>';
+    list.appendChild(div);
   });
 }
 
@@ -1098,72 +1108,73 @@ function closeObsPanel() {
   document.getElementById('obs-panel').style.display = 'none';
 }
 
-function setObsDot(key, on) {
-  var dot = document.getElementById('obs-dot-admin-' + key);
-  var btn = document.getElementById('obs-conn-' + key);
-  if (dot) dot.style.background = on ? '#22c55e' : '#666';
+function setObsUI(key, on) {
+  var dot = document.getElementById('odot-' + key);
+  var btn = document.getElementById('obtn-' + key);
+  if (dot) dot.style.background = on ? '#22c55e' : '#555';
   if (btn) { btn.textContent = on ? 'قطع' : 'اتصال'; btn.style.background = on ? '#ef4444' : '#22c55e'; }
 }
 
-async function toggleObsConn(key, pageId, ip, port, pass, source, langId) {
-  var conn = _obsConnections[key];
+function toggleObs(key, pageId, ip, port, pass, source, langId) {
+  var conn = _obsConns[key];
   if (conn && conn.ws && conn.ws.readyState === 1) {
-    // قطع
-    conn.ws.close();
+    // قطع الاتصال
     clearInterval(conn.poll);
-    delete _obsConnections[key];
-    setObsDot(key, false);
+    conn.ws.onclose = null;
+    conn.ws.close();
+    delete _obsConns[key];
+    setObsUI(key, false);
     document.getElementById('obs-status').textContent = 'تم قطع الاتصال';
     return;
   }
-  document.getElementById('obs-status').textContent = 'جاري الاتصال...';
+  document.getElementById('obs-status').textContent = 'جاري الاتصال بـ ' + ip + ':' + port + ' ...';
   var ws;
   try { ws = new WebSocket('ws://' + ip + ':' + port); }
-  catch(e) { document.getElementById('obs-status').textContent = 'فشل: ' + e.message; return; }
+  catch(e) { document.getElementById('obs-status').textContent = '❌ ' + e.message; return; }
 
-  _obsConnections[key] = { ws: ws, source: source, pageId: pageId, langId: langId, poll: null };
+  var obj = { ws: ws, poll: null, reqId: 0, lastText: null };
+  _obsConns[key] = obj;
 
-  ws.onopen = function() {
-    document.getElementById('obs-status').textContent = 'متصل — في انتظار Hello...';
-  };
-  ws.onmessage = async function(e) {
+  ws.onmessage = function(e) {
     var msg = JSON.parse(e.data);
+    // op:0 Hello
     if (msg.op === 0) {
-      // Hello — أرسل Identify
-      var d = { rpcVersion: 1 };
-      if (msg.d && msg.d.authentication && pass) {
-        d.authentication = await obsAdminAuth(pass, msg.d.authentication.challenge, msg.d.authentication.salt);
+      var auth = msg.d && msg.d.authentication;
+      if (auth && pass) {
+        sha256b64(pass + auth.salt).then(function(s){ return sha256b64(s + auth.challenge); })
+        .then(function(r) {
+          ws.send(JSON.stringify({ op:1, d:{ rpcVersion:1, authentication:r } }));
+        });
+      } else {
+        ws.send(JSON.stringify({ op:1, d:{ rpcVersion:1 } }));
       }
-      ws.send(JSON.stringify({ op: 1, d: d }));
     }
+    // op:2 Identified — اتصال ناجح
     if (msg.op === 2) {
-      // Identified — اتصال ناجح
-      setObsDot(key, true);
+      setObsUI(key, true);
       document.getElementById('obs-status').textContent = '✅ متصل — يرسل الترجمة لـ Supabase';
-      // polling كل 150ms
-      var conn = _obsConnections[key];
-      var reqId = 0;
-      conn.poll = setInterval(function() {
-        if (!source || ws.readyState !== 1) return;
-        ws.send(JSON.stringify({ op:6, d:{ requestType:'GetInputSettings', requestId:'r'+(++reqId), requestData:{ inputName: source } } }));
-      }, 150);
+      // polling كل 100ms
+      obj.poll = setInterval(function() {
+        if (ws.readyState !== 1) return;
+        ws.send(JSON.stringify({ op:6, d:{ requestType:'GetInputSettings', requestId:'r'+(++obj.reqId), requestData:{ inputName: source } } }));
+      }, 100);
     }
+    // op:7 — استقبل النص وأرسله لـ Supabase
     if (msg.op === 7 && msg.d && msg.d.responseData) {
       var t = msg.d.responseData.inputSettings && msg.d.responseData.inputSettings.text;
-      if (t !== undefined) {
-        // أرسل النص لـ Supabase في page_langs
-        await db('PATCH', 'page_langs', { obs_text: t }, 'id=eq.' + langId).catch(function(){});
+      if (t !== undefined && t !== obj.lastText) {
+        obj.lastText = t;
+        db('PATCH','page_langs',{ obs_text: t },'id=eq.'+langId).catch(function(){});
       }
     }
   };
   ws.onerror = function() {
     document.getElementById('obs-status').textContent = '❌ تعذر الاتصال — تحقق من IP والمنفذ';
-    setObsDot(key, false);
+    setObsUI(key, false);
   };
   ws.onclose = function() {
-    setObsDot(key, false);
-    var conn = _obsConnections[key];
-    if (conn) clearInterval(conn.poll);
+    clearInterval(obj.poll);
+    setObsUI(key, false);
   };
 }
 </script>
