@@ -669,7 +669,8 @@ async function handleFile(inp,type){
   statusEl.style.color='var(--gold)';
   try {
     var bucket=type==='sub'?'subtitles':'audio';
-    var path=(EDIT_ID||'new')+'/'+Date.now()+'.'+file.name.split('.').pop();
+    var ext = file.name.includes('.') ? file.name.split('.').pop().toLowerCase() : (type==='sub'?'ass':'mp3');
+    var path=(EDIT_ID||'new')+'/'+Date.now()+'.'+ext;
     var url=await upload(bucket,path,file);
     urlEl.value=url;
     statusEl.textContent='✅ '+file.name;
