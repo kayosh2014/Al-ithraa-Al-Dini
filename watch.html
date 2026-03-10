@@ -511,136 +511,150 @@ function buildLangPanel() {
 }
 
 // ══ OBS WebSocket ══
-// ══ OBS Realtime — يقرأ obs_text من Supabase ══
 function startObsRealtime(pageId) {
   var url = SUPA_URL.replace('https','wss') + '/realtime/v1/websocket?apikey=' + SUPA_KEY + '&vsn=1.0.0';
   var ws = new WebSocket(url);
-  var joined = false;
+
   ws.onopen = function() {
-    ws.send(JSON.stringify({ topic:'realtime:public:page_langs:page_id=eq.'+pageId, event:'phx_join', payload:{config:{broadcast:{self:true},presence:{key:''},postgres_changes:[{event:'UPDATE',schema:'public',table:'page_langs',filter:'page_id=eq.'+pageId}]}}, ref:'1' }));
+    // اشترك في تغييرات page_langs
+    ws.send(JSON.stringify({
+      topic: 'realtime:public:page_langs:page_id=eq.' + pageId,
+      event: 'phx_join',
+      payload: {
+        config: {
+          postgres_changes: [{
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'page_langs',
+            filter: 'page_id=eq.' + pageId
+          }]
+        }
+      },
+      ref: '1'
+    }));
+    console.log('[OBS Realtime] متصل بـ Supabase');
+    // heartbeat كل 25 ثانية
+    setInterval(function() {
+      if (ws.readyState === 1)
+        ws.send(JSON.stringify({ topic:'phoenix', event:'heartbeat', payload:{}, ref:'hb' }));
+    }, 25000);
   };
+
   ws.onmessage = function(e) {
     var msg = JSON.parse(e.data);
-    // heartbeat
-    if (msg.event === 'heartbeat') {
-      ws.send(JSON.stringify({ topic:'phoenix', event:'heartbeat', payload:{}, ref:'hb' }));
-    }
     // تغيير في page_langs
     if (msg.event === 'postgres_changes') {
       var record = msg.payload && msg.payload.data && msg.payload.data.record;
       if (!record) return;
-      var idx = ST.langs.findIndex(function(l){ return l.id === record.id; });
+      // ابحث عن idx من langs
+      var idx = -1;
+      for (var i = 0; i < ST.langs.length; i++) {
+        if (ST.langs[i].id === record.id) { idx = i; break; }
+      }
       if (idx < 0) return;
       if (record.obs_text !== undefined) {
         ST.obsTexts[idx] = record.obs_text || '';
         if (ST.activeSub === idx) drawSubText(ST.obsTexts[idx]);
+        console.log('[OBS] نص جديد:', record.obs_text);
       }
     }
   };
-  ws.onclose = function() { setTimeout(function(){ startObsRealtime(pageId); }, 4000); };
-}
 
-// ══ SHA256 للـ OBS Authentication ══
-function sha256b64(str) {
-  return crypto.subtle.digest('SHA-256', new TextEncoder().encode(str))
-    .then(function(buf){ return btoa(String.fromCharCode.apply(null, new Uint8Array(buf))); });
+  ws.onclose = function() {
+    console.log('[OBS Realtime] انقطع — إعادة بعد 4 ثوان');
+    setTimeout(function() { startObsRealtime(pageId); }, 4000);
+  };
+
+  ws.onerror = function(e) {
+    console.error('[OBS Realtime] خطأ:', e);
+  };
 }
 
 function connectAllOBS() {
-  var port = ST.session.obs_port || '4455';
-  var pass = ST.session.obs_pass || '';
+  var port = ST.session.obs_port || ST.session.obsPort || '4455';
+  var pass = ST.session.obs_pass || ST.session.obsPass || '';
   ST.langs.forEach(function(l, i) {
-    l._idx = i;
-    l._port = port;
-    l._pass = pass;
-    l._reqId = 0;
-    l._connected = false;
-    if (l.ip) connectOBS(l);
+    if (!l.ip) return;
+    connectOBS(i, l.ip, port, pass, l.obs_source);
     if (l.yt_audio_url) loadYTAudio(i, l.yt_audio_url);
     else if (l.icecast_url) loadIcecast(i, l.icecast_url);
   });
-  startObsPolling();
 }
 
-function connectOBS(l) {
-  var url = 'ws://' + l.ip + ':' + l._port;
-  try { l._ws = new WebSocket(url); } catch(e) { return; }
-  ST.obsWs[l._idx] = l._ws;
+function connectOBS(idx, ip, port, pass, source) {
+  var url = 'ws://' + ip + ':' + port;
+  var ws;
+  try { ws = new WebSocket(url); } catch(e) { return; }
+  ST.obsWs[idx] = ws;
+  var reqId = 0;
 
-  l._ws.onmessage = function(e) {
+  ws.onopen = function() {
+    ws.send(JSON.stringify({ op:1, d:{ rpcVersion:1 } }));
+    updateObsDot(idx, true);
+  };
+  ws.onmessage = function(e) {
     var msg = JSON.parse(e.data);
-    // op:0 Hello
-    if (msg.op === 0) {
-      var auth = msg.d && msg.d.authentication;
-      if (auth && l._pass) {
-        sha256b64(l._pass + auth.salt).then(function(s) {
-          return sha256b64(s + auth.challenge);
-        }).then(function(r) {
-          l._ws.send(JSON.stringify({ op:1, d:{ rpcVersion:1, authentication:r } }));
-        });
-      } else {
-        l._ws.send(JSON.stringify({ op:1, d:{ rpcVersion:1 } }));
+    if (msg.op === 2) {
+      // hello — أرسل identify
+      ws.send(JSON.stringify({ op:3, d:{ rpcVersion:1 } }));
+    }
+    if (msg.op === 5 && msg.d && msg.d.eventType === 'InputSettingsChanged') {
+      var settings = msg.d.eventData && msg.d.eventData.inputSettings;
+      if (settings && settings.text !== undefined) {
+        ST.obsTexts[idx] = settings.text || '';
+        if (ST.activeSub === idx) drawSubText(ST.obsTexts[idx]);
       }
     }
-    // op:2 Identified
-    if (msg.op === 2) {
-      l._connected = true;
-      updateObsDot(l._idx, true);
-    }
-    // op:7 RequestResponse
+  };
+  ws.onclose = function() {
+    updateObsDot(idx, false);
+    setTimeout(function() { connectOBS(idx, ip, port, pass, source); }, 5000);
+  };
+
+  // polling كل 100ms
+  var poll = setInterval(function() {
+    if (ws.readyState !== 1) { clearInterval(poll); return; }
+    if (!source) return;
+    reqId++;
+    ws.send(JSON.stringify({
+      op:6, d:{ requestType:'GetInputSettings', requestId:'r'+reqId, requestData:{ inputName: source } }
+    }));
+  }, 100);
+
+  ws.addEventListener('message', function(e) {
+    var msg = JSON.parse(e.data);
     if (msg.op === 7 && msg.d && msg.d.responseData) {
       var t = msg.d.responseData.inputSettings && msg.d.responseData.inputSettings.text;
-      if (t !== undefined && t !== l._lastText) {
-        l._lastText = t;
-        ST.obsTexts[l._idx] = t;
-        if (ST.activeSub === l._idx) drawSubText(t);
+      if (t !== undefined) {
+        ST.obsTexts[idx] = t || '';
+        if (ST.activeSub === idx) drawSubText(ST.obsTexts[idx]);
       }
     }
-  };
-  l._ws.onerror = function() { l._connected = false; updateObsDot(l._idx, false); };
-  l._ws.onclose = function() {
-    l._connected = false;
-    updateObsDot(l._idx, false);
-    setTimeout(function() { connectOBS(l); }, 5000);
-  };
-}
-
-function startObsPolling() {
-  setInterval(function() {
-    ST.langs.forEach(function(l) {
-      if (!l._connected || !l.obs_source || !l._ws) return;
-      if (l._ws.readyState !== 1) return;
-      l._ws.send(JSON.stringify({
-        op:6, d:{ requestType:'GetInputSettings', requestId:'r'+(++l._reqId), requestData:{ inputName: l.obs_source } }
-      }));
-    });
-  }, 100);
+  });
 }
 
 function updateObsDot(idx, on) {
   var el = document.getElementById('obs-dot-' + idx);
-  if (el) el.className = 'obs-lang-dot' + (on ? ' on' : '');
+  if (el) el.className = 'obs-lang-dot' + (on?' on':'');
 }
 
 function loadYTAudio(idx, url) {
   var id = extractYTId(url); if (!id) return;
-  var wrap = document.createElement('div');
-  wrap.id = 'yt-audio-wrap-' + idx;
-  wrap.style.cssText = 'position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;z-index:-1;';
-  wrap.innerHTML = '<div id="yta-player-' + idx + '"></div>';
-  document.body.appendChild(wrap);
+  var iframe = document.createElement('iframe');
+  iframe.src = 'https://www.youtube.com/embed/' + id + '?autoplay=0&controls=0';
+  iframe.style.display = 'none'; iframe.id = 'yt-audio-' + idx;
+  document.body.appendChild(iframe);
+  var ytAud = null;
   var t = setInterval(function() {
     if (!window.YT || !window.YT.Player) return;
     clearInterval(t);
-    new YT.Player('yta-player-' + idx, {
-      videoId: id,
-      playerVars: { autoplay:0, controls:0, rel:0, playsinline:1 },
+    ytAud = new YT.Player('yt-audio-' + idx, {
       events: { onReady: function(e) {
         e.target.setVolume(0);
         ST.audioEls[idx] = e.target;
       }}
     });
-  }, 300);
+  }, 500);
 }
 
 function loadIcecast(idx, url) {
