@@ -140,8 +140,7 @@ body{background:var(--bg);color:var(--white);font-family:'Tajawal',sans-serif;}
 #black-screen.hide{display:none;}
 #black-screen svg{width:40px;height:40px;fill:rgba(255,255,255,.3);}
 #black-screen span{font-size:.8rem;color:rgba(255,255,255,.3);}
-/* إخفاء iframe يوتيوب تماماً حين الشاشة السوداء مرئية */
-#yt-frame{visibility:visible;}
+#yt-frame{opacity:0;transition:opacity .3s;}
 
 /* ══ حالة الاتصال OBS ══ */
 #obs-status{position:absolute;top:60px;right:12px;z-index:15;
@@ -306,6 +305,7 @@ function createYTPlayer(videoId) {
         if (e.data === YT.PlayerState.PLAYING) {
           ST.playing=true; updatePlayIcon();
           document.getElementById('black-screen').classList.add('hide');
+          document.getElementById('yt-frame').style.opacity='1';
         }
         if (e.data === YT.PlayerState.PAUSED) {
           ST.playing=false; updatePlayIcon();
