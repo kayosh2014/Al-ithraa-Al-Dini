@@ -219,8 +219,7 @@ select.inp option{background:var(--bg3);}
     <div class="login-icon">🔐</div>
     <div class="login-title">لوحة التحكم</div>
     <div class="login-sub">الإثراء الديني — Admin Panel</div>
-    <input class="login-inp" id="pass-inp" type="password" placeholder="كلمة المرور"
-      onkeydown="if(event.key==='Enter')doLogin()">
+    <input class="login-inp" id="pass-inp" type="password" placeholder="كلمة المرور">
     <button class="login-btn" onclick="doLogin()">دخول</button>
     <div class="login-err" id="login-err"></div>
   </div>
@@ -1033,6 +1032,12 @@ window.addEventListener('load',function(){
     document.getElementById('login-screen').classList.add('hide');
     initAdmin();
   }
+  var pi=document.getElementById('pass-inp');
+  if(pi){
+    pi.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); doLogin(); } });
+    pi.focus();
+  }
+  /* legacy fallback */
   document.getElementById('pass-inp').addEventListener('keydown',function(e){
     if(e.key==='Enter') doLogin();
   });
