@@ -1015,8 +1015,6 @@ async function quickSync(pageId, btn) {
     }
   } catch(e){toast('❌ '+e.message,'err');}
 }
-}
-}
 
 // ══ TOAST ══
 var _tt;
@@ -1037,10 +1035,6 @@ window.addEventListener('load',function(){
     pi.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); doLogin(); } });
     pi.focus();
   }
-  /* legacy fallback */
-  document.getElementById('pass-inp').addEventListener('keydown',function(e){
-    if(e.key==='Enter') doLogin();
-  });
 });
 </script>
 </body>
