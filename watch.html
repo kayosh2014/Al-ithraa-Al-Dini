@@ -316,17 +316,39 @@ function createYTPlayer(videoId) {
           document.getElementById('black-screen').classList.add('hide');
           document.getElementById('black-screen').classList.remove('paused');
           document.getElementById('yt-frame').style.opacity='1';
+          // شغّل صوت المترجم إذا مختار
+          if (ST.activeAudio >= 0) {
+            var _a = ST.audioEls[ST.activeAudio];
+            if (_a) {
+              if (typeof _a.playVideo === 'function') _a.playVideo();
+              else _a.play().catch(function(){});
+            }
+          }
         }
         if (e.data === YT.PlayerState.PAUSED) {
           ST.playing=false; updatePlayIcon();
           document.getElementById('bs-txt').textContent = 'موقوف مؤقتاً';
           document.getElementById('black-screen').classList.remove('hide');
           document.getElementById('black-screen').classList.add('paused');
+          // أوقف صوت المترجم
+          Object.keys(ST.audioEls).forEach(function(i) {
+            var _a = ST.audioEls[i];
+            if (!_a) return;
+            if (typeof _a.pauseVideo === 'function') _a.pauseVideo();
+            else _a.pause();
+          });
         }
         if (e.data === YT.PlayerState.ENDED) {
           ST.playing=false; updatePlayIcon();
           document.getElementById('bs-txt').textContent = 'انتهى الفيديو';
           document.getElementById('black-screen').classList.remove('hide');
+          // أوقف صوت المترجم
+          Object.keys(ST.audioEls).forEach(function(i) {
+            var _a = ST.audioEls[i];
+            if (!_a) return;
+            if (typeof _a.pauseVideo === 'function') _a.pauseVideo();
+            else _a.pause();
+          });
         }
       }
     }
@@ -380,27 +402,20 @@ async function loadPage(id) {
     var isLive = page.status === 'live';
     document.getElementById('live-badge').style.display = isLive ? 'flex' : 'none';
 
-    if (ST.mode === 'sync' || ST.mode === 'recorded') {
-      await loadSubtitleFiles();
-      // تحميل ملفات الصوت (audio_url)
-      ST.langs.forEach(function(l, i) {
-        if (l.audio_url) {
-          var a = new Audio(l.audio_url);
-          a.volume = 0;
-          a.preload = 'auto';
-          ST.audioEls[i] = a;
-        } else if (l.yt_audio_url) {
-          loadYTAudio(i, l.yt_audio_url);
-        } else if (l.icecast_url) {
-          loadIcecast(i, l.icecast_url);
-        }
-      });
-    }
-    // إذا sync وعنده sync_start
+    if (ST.mode === 'sync' || ST.mode === 'recorded') await loadSubtitleFiles();
     if (ST.mode === 'sync' && page.sync_start) {
-      ST.syncStart = new Date(page.sync_start).getTime();
+      var offset = (Date.now() - new Date(page.sync_start).getTime());
+      ST.syncStart = Date.now() - offset;
     }
     buildLangPanel();
+    // في sync — اختر أول لغة عندها ترجمة تلقائياً
+    if (ST.mode === 'sync') {
+      for (var _si = 0; _si < ST.langs.length; _si++) {
+        if (ST.subs[_si] && ST.subs[_si].events && ST.subs[_si].events.length) {
+          setSub(_si); break;
+        }
+      }
+    }
     showPlayer();
     startCtrlHide();
 
@@ -623,8 +638,17 @@ function setAudio(idx) {
   } else {
     var el = ST.audioEls[idx];
     if (el) {
-      if (typeof el.playVideo === 'function') { el.setVolume(ST.vol); el.playVideo(); }
-      else { el.volume = ST.vol/100; el.play().catch(function(){}); }
+      // مزامنة الوقت مع الفيديو
+      var _t = (ytPlayer && ytPlayer.getCurrentTime) ? ytPlayer.getCurrentTime() : 0;
+      if (typeof el.seekTo === 'function') {
+        el.seekTo(_t, true);
+        el.setVolume(ST.vol);
+        el.playVideo();
+      } else {
+        el.currentTime = _t;
+        el.volume = ST.vol / 100;
+        if (ST.playing) el.play().catch(function(){});
+      }
     }
     // feedback — الصوت الأصلي في الخلفية
     if (ytPlayer && ytPlayer.setVolume) ytPlayer.setVolume(ST.feedback);
@@ -874,10 +898,6 @@ function startRealtimePage(pageId) {
         } else {
           ST.syncStart = null;
         }
-      }
-      // تحديث sync_start
-      if (typeof s.sync_start !== 'undefined') {
-        ST.syncStart = s.sync_start ? new Date(s.sync_start).getTime() : null;
       }
       // تحديث feedback
       if (s.feedback !== undefined) {
