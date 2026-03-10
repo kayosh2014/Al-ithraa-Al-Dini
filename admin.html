@@ -6,224 +6,214 @@
 <title>لوحة التحكم — الإثراء الديني</title>
 <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
 <style>
-:root {
-  --green:#1a472a; --green-md:#2d6a4f; --green-lt:#40916c;
-  --gold:#c9a84c;  --gold-lt:#e9c46a;
-  --silver:#b0b7c3; --white:#f0ece4;
-  --bg:#0a0e0b; --bg2:#0f1610; --bg3:#141d15; --bg4:#1a2419;
+:root{
+  --green:#1a472a;--green-md:#2d6a4f;--green-lt:#40916c;
+  --gold:#c9a84c;--gold-lt:#e9c46a;
+  --silver:#b0b7c3;--white:#f0ece4;
+  --bg:#0a0e0b;--bg2:#0f1610;--bg3:#141d15;--bg4:#1a2419;
   --border:rgba(201,168,76,.15);
-  --red:#dc3545; --red-lt:rgba(220,53,69,.15);
-  --sidebar:220px;
+  --red:#dc3545;--red-lt:rgba(220,53,69,.12);
+  --sidebar:230px;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--white);font-family:'Tajawal',sans-serif;min-height:100vh;display:flex;}
+body{background:var(--bg);color:var(--white);font-family:'Tajawal',sans-serif;min-height:100vh;}
 
-/* ══ شاشة الدخول ══ */
+/* ══ LOGIN ══ */
 #login-screen{position:fixed;inset:0;z-index:1000;background:var(--bg);
   display:flex;align-items:center;justify-content:center;}
 #login-screen.hide{display:none;}
 .login-box{background:var(--bg3);border:1px solid var(--border);border-radius:16px;
   padding:40px;width:340px;text-align:center;}
 .login-icon{font-size:2.5rem;margin-bottom:12px;}
-.login-title{font-family:'Amiri',serif;font-size:1.5rem;color:var(--gold);margin-bottom:6px;}
-.login-sub{font-size:.75rem;color:var(--silver);margin-bottom:28px;}
+.login-title{font-family:'Amiri',serif;font-size:1.5rem;color:var(--gold);margin-bottom:4px;}
+.login-sub{font-size:.72rem;color:var(--silver);margin-bottom:24px;}
 .login-inp{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
   color:var(--white);padding:11px 14px;border-radius:8px;font-family:'Tajawal',sans-serif;
   font-size:.9rem;outline:none;margin-bottom:12px;text-align:center;letter-spacing:4px;}
 .login-inp::placeholder{letter-spacing:1px;color:rgba(255,255,255,.2);}
 .login-btn{width:100%;background:linear-gradient(135deg,var(--green-md),var(--green-lt));
-  color:var(--white);padding:11px;border-radius:8px;border:none;font-family:'Tajawal',sans-serif;
-  font-size:.9rem;font-weight:600;cursor:pointer;transition:opacity .2s;}
+  color:var(--white);padding:11px;border-radius:8px;border:none;
+  font-family:'Tajawal',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;}
 .login-btn:hover{opacity:.85;}
 .login-err{font-size:.75rem;color:#ff6b6b;margin-top:8px;min-height:18px;}
 
-/* ══ sidebar ══ */
+/* ══ LAYOUT ══ */
+#app{display:flex;min-height:100vh;}
 #sidebar{width:var(--sidebar);background:var(--bg2);border-left:1px solid var(--border);
-  min-height:100vh;display:flex;flex-direction:column;flex-shrink:0;position:fixed;right:0;top:0;bottom:0;}
-.sb-logo{padding:20px 16px;border-bottom:1px solid var(--border);}
-.sb-logo-ar{font-family:'Amiri',serif;font-size:1.1rem;color:var(--gold);}
-.sb-logo-en{font-size:.55rem;color:var(--silver);letter-spacing:2px;}
-.sb-nav{flex:1;padding:12px 8px;overflow-y:auto;}
-.sb-section{font-size:.58rem;color:rgba(255,255,255,.25);letter-spacing:3px;
-  padding:10px 8px 6px;margin-top:4px;}
-.sb-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;
-  color:rgba(240,236,228,.55);font-size:.8rem;cursor:pointer;transition:all .2s;
-  margin-bottom:2px;border:none;background:none;width:100%;text-align:right;font-family:'Tajawal',sans-serif;}
+  position:fixed;right:0;top:0;bottom:0;display:flex;flex-direction:column;z-index:50;}
+#main{margin-right:var(--sidebar);flex:1;min-height:100vh;}
+
+/* ══ SIDEBAR ══ */
+.sb-logo{padding:18px 16px;border-bottom:1px solid var(--border);}
+.sb-logo-ar{font-family:'Amiri',serif;font-size:1.05rem;color:var(--gold);}
+.sb-logo-en{font-size:.52rem;color:var(--silver);letter-spacing:2px;}
+.sb-nav{flex:1;padding:10px 8px;overflow-y:auto;}
+.sb-sec{font-size:.56rem;color:rgba(255,255,255,.22);letter-spacing:3px;padding:10px 8px 5px;margin-top:2px;}
+.sb-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;
+  color:rgba(240,236,228,.5);font-size:.78rem;cursor:pointer;transition:all .2s;
+  border:none;background:none;width:100%;text-align:right;font-family:'Tajawal',sans-serif;margin-bottom:1px;}
 .sb-item:hover{background:rgba(255,255,255,.05);color:var(--white);}
 .sb-item.active{background:rgba(201,168,76,.1);color:var(--gold);border-right:2px solid var(--gold);}
-.sb-item-icon{font-size:1rem;width:20px;text-align:center;}
-.sb-footer{padding:14px;border-top:1px solid var(--border);}
-.sb-live-status{display:flex;align-items:center;gap:7px;padding:8px 10px;border-radius:8px;
-  background:rgba(255,255,255,.03);font-size:.72rem;color:var(--silver);}
-.sb-live-dot{width:7px;height:7px;border-radius:50%;background:#666;flex-shrink:0;}
-.sb-live-dot.on{background:#22c55e;animation:blink 1s infinite;}
+.sb-icon{font-size:.95rem;width:18px;text-align:center;}
+.sb-footer{padding:12px;border-top:1px solid var(--border);}
+.sb-status{display:flex;align-items:center;gap:6px;padding:7px 10px;
+  background:rgba(255,255,255,.03);border-radius:7px;font-size:.7rem;color:var(--silver);}
+.live-dot{width:6px;height:6px;border-radius:50%;background:#444;flex-shrink:0;}
+.live-dot.on{background:#22c55e;animation:blink 1s infinite;}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 
-/* ══ main ══ */
-#main{margin-right:var(--sidebar);flex:1;min-height:100vh;display:flex;flex-direction:column;}
-.main-header{padding:16px 24px;border-bottom:1px solid var(--border);
+/* ══ HEADER ══ */
+.page-header{padding:14px 24px;border-bottom:1px solid var(--border);
   display:flex;align-items:center;justify-content:space-between;
-  background:rgba(10,14,11,.8);backdrop-filter:blur(12px);
-  position:sticky;top:0;z-index:50;}
-.page-title{font-family:'Amiri',serif;font-size:1.2rem;color:var(--white);}
-.page-sub{font-size:.7rem;color:var(--silver);margin-top:2px;}
-.header-actions{display:flex;gap:8px;align-items:center;}
+  background:rgba(10,14,11,.85);backdrop-filter:blur(12px);
+  position:sticky;top:0;z-index:40;}
+.page-title{font-family:'Amiri',serif;font-size:1.15rem;}
+.page-sub{font-size:.68rem;color:var(--silver);margin-top:1px;}
+.hdr-actions{display:flex;gap:8px;}
 
-/* ══ أزرار عامة ══ */
-.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:7px;
-  font-size:.78rem;font-weight:600;cursor:pointer;border:none;font-family:'Tajawal',sans-serif;
-  transition:all .2s;}
-.btn-green{background:linear-gradient(135deg,var(--green-md),var(--green-lt));color:var(--white);}
+/* ══ PAGES ══ */
+.page{display:none;padding:20px 24px;}
+.page.active{display:block;}
+
+/* ══ BUTTONS ══ */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 15px;border-radius:7px;
+  font-size:.76rem;font-weight:600;cursor:pointer;border:none;
+  font-family:'Tajawal',sans-serif;transition:all .2s;}
+.btn-green{background:linear-gradient(135deg,var(--green-md),var(--green-lt));color:#fff;}
 .btn-green:hover{opacity:.85;}
-.btn-gold{background:rgba(201,168,76,.12);color:var(--gold);border:1px solid rgba(201,168,76,.25);}
-.btn-gold:hover{background:rgba(201,168,76,.22);}
-.btn-red{background:var(--red-lt);color:#ff6b6b;border:1px solid rgba(220,53,69,.25);}
-.btn-red:hover{background:rgba(220,53,69,.25);}
+.btn-gold{background:rgba(201,168,76,.1);color:var(--gold);border:1px solid rgba(201,168,76,.25);}
+.btn-gold:hover{background:rgba(201,168,76,.2);}
+.btn-red{background:var(--red-lt);color:#ff6b6b;border:1px solid rgba(220,53,69,.2);}
+.btn-red:hover{background:rgba(220,53,69,.22);}
 .btn-gray{background:rgba(255,255,255,.06);color:var(--silver);border:1px solid rgba(255,255,255,.08);}
 .btn-gray:hover{background:rgba(255,255,255,.1);}
-.btn-sm{padding:5px 11px;font-size:.72rem;}
+.btn-sm{padding:5px 10px;font-size:.7rem;}
 
-/* ══ محتوى الصفحات ══ */
-.page-content{padding:24px;flex:1;display:none;}
-.page-content.active{display:block;}
+/* ══ CARDS ══ */
+.card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:14px;}
+.card-title{font-size:.75rem;color:var(--silver);margin-bottom:12px;
+  display:flex;align-items:center;gap:6px;letter-spacing:.5px;}
 
-/* ══ cards ══ */
-.card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;}
-.card-title{font-size:.8rem;color:var(--silver);margin-bottom:14px;
-  display:flex;align-items:center;gap:7px;letter-spacing:1px;}
-.card-title-icon{font-size:1rem;}
-
-/* ══ stat cards ══ */
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:20px;}
-.stat-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;}
-.stat-num{font-family:'Amiri',serif;font-size:2rem;color:var(--gold);display:block;}
-.stat-lbl{font-size:.68rem;color:var(--silver);letter-spacing:1px;}
-
-/* ══ حقول الإدخال ══ */
-.field{margin-bottom:14px;}
-.field label{display:block;font-size:.72rem;color:var(--silver);margin-bottom:6px;letter-spacing:.5px;}
+/* ══ FORM ══ */
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:.7rem;color:var(--silver);margin-bottom:5px;}
 .inp{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
-  color:var(--white);padding:9px 12px;border-radius:7px;font-family:'Tajawal',sans-serif;
-  font-size:.82rem;outline:none;transition:border-color .2s;}
+  color:var(--white);padding:8px 11px;border-radius:7px;
+  font-family:'Tajawal',sans-serif;font-size:.82rem;outline:none;transition:border-color .2s;}
 .inp:focus{border-color:rgba(201,168,76,.4);}
-.inp::placeholder{color:rgba(255,255,255,.2);}
+.inp::placeholder{color:rgba(255,255,255,.18);}
 select.inp option{background:var(--bg3);}
 .inp-row{display:flex;gap:10px;}
 .inp-row .field{flex:1;}
 
-/* ══ البث المباشر — حالة ══ */
-.live-mode-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
-.mode-card{border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px;
-  cursor:pointer;transition:all .2s;text-align:center;}
-.mode-card:hover{border-color:rgba(201,168,76,.3);}
-.mode-card.active{border-color:var(--gold);background:rgba(201,168,76,.06);}
-.mode-icon{font-size:1.8rem;margin-bottom:6px;}
-.mode-title{font-size:.78rem;color:var(--white);font-weight:600;margin-bottom:3px;}
-.mode-sub{font-size:.64rem;color:var(--silver);}
-.mode-off .mode-icon{opacity:.4;}
-.mode-off .mode-title{color:var(--silver);}
+/* ══ فئة البث — chips ══ */
+.type-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px;}
+.type-chip{padding:6px 16px;border-radius:20px;font-size:.76rem;cursor:pointer;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  color:rgba(240,236,228,.5);transition:all .2s;font-family:'Tajawal',sans-serif;}
+.type-chip:hover{border-color:rgba(201,168,76,.3);color:var(--white);}
+.type-chip.active{background:rgba(201,168,76,.1);border-color:rgba(201,168,76,.4);color:var(--gold);}
+
+/* ══ حالة البث ══ */
+.status-tabs{display:flex;gap:8px;margin-bottom:4px;}
+.status-tab{flex:1;padding:10px;border-radius:8px;text-align:center;cursor:pointer;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);
+  font-size:.76rem;color:rgba(240,236,228,.45);transition:all .2s;}
+.status-tab:hover{border-color:rgba(255,255,255,.15);color:var(--white);}
+.status-tab.active.upcoming{background:rgba(59,130,246,.1);border-color:rgba(59,130,246,.3);color:#60a5fa;}
+.status-tab.active.live{background:rgba(220,50,50,.1);border-color:rgba(220,50,50,.3);color:#ff7070;}
+.status-tab.active.ended{background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.25);color:#86efac;}
 
 /* ══ بطاقات اللغات ══ */
-.langs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;}
-.lang-card{background:var(--bg4);border:1px solid rgba(255,255,255,.07);border-radius:9px;padding:13px;}
-.lang-card-hdr{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
-.lang-num{width:22px;height:22px;border-radius:50%;background:rgba(201,168,67,.12);
-  border:1px solid rgba(201,168,67,.25);color:var(--gold);font-size:.62rem;font-weight:700;
+.langs-wrap{margin-top:4px;}
+.lang-card{background:var(--bg4);border:1px solid rgba(255,255,255,.07);
+  border-radius:9px;padding:13px;margin-bottom:8px;}
+.lang-hdr{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.lang-num{width:22px;height:22px;border-radius:50%;
+  background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.2);
+  color:var(--gold);font-size:.6rem;font-weight:700;
   display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .lang-name-inp{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
-  color:var(--white);padding:5px 9px;border-radius:6px;font-family:'Tajawal',sans-serif;
-  font-size:.76rem;outline:none;}
+  color:var(--white);padding:5px 9px;border-radius:6px;
+  font-family:'Tajawal',sans-serif;font-size:.76rem;outline:none;}
 .lang-name-inp::placeholder{color:rgba(255,255,255,.15);}
-.lang-del{width:22px;height:22px;border-radius:50%;background:rgba(220,53,69,.1);
-  border:1px solid rgba(220,53,69,.2);color:#ff6b6b;font-size:.72rem;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.lang-del:hover{background:rgba(220,53,69,.25);}
+.lang-del{width:22px;height:22px;border-radius:50%;
+  background:rgba(220,53,69,.08);border:1px solid rgba(220,53,69,.2);
+  color:#ff6b6b;font-size:.7rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.lang-del:hover{background:rgba(220,53,69,.2);}
 .lang-inp{width:100%;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);
   color:rgba(255,255,255,.75);padding:6px 9px;border-radius:6px;margin-bottom:5px;
   font-family:monospace;font-size:.68rem;outline:none;}
 .lang-inp::placeholder{color:rgba(255,255,255,.12);}
-.add-lang-btn{width:100%;background:rgba(201,168,67,.06);border:1px dashed rgba(201,168,67,.25);
-  color:var(--gold);padding:8px;border-radius:7px;font-family:'Tajawal',sans-serif;
-  font-size:.78rem;cursor:pointer;margin-top:4px;}
-.add-lang-btn:hover{background:rgba(201,168,67,.14);}
-.lang-status{width:7px;height:7px;border-radius:50%;background:#666;flex-shrink:0;}
-.lang-status.on{background:#22c55e;}
 
-/* ══ feedback slider ══ */
-.feedback-wrap{display:flex;align-items:center;gap:10px;margin-top:10px;}
-.feedback-label{font-size:.72rem;color:var(--silver);white-space:nowrap;}
-.feedback-slider{flex:1;-webkit-appearance:none;height:3px;
-  background:rgba(255,255,255,.12);border-radius:2px;outline:none;cursor:pointer;}
-.feedback-slider::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;
-  border-radius:50%;background:var(--gold);cursor:pointer;}
-.feedback-val{font-size:.72rem;color:var(--gold);min-width:30px;text-align:center;}
+/* ══ file upload row ══ */
+.file-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.file-lbl{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;
+  background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.25);
+  color:var(--gold);border-radius:6px;font-size:.7rem;cursor:pointer;
+  white-space:nowrap;transition:background .2s;font-family:'Tajawal',sans-serif;}
+.file-lbl:hover{background:rgba(201,168,76,.2);}
+.file-status{font-size:.68rem;color:var(--silver);flex:1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
-/* ══ جدول المحتوى ══ */
-.content-table{width:100%;border-collapse:collapse;}
-.content-table th{font-size:.68rem;color:var(--silver);padding:8px 12px;
+.add-lang-btn{width:100%;background:rgba(201,168,76,.05);
+  border:1px dashed rgba(201,168,76,.2);color:var(--gold);
+  padding:8px;border-radius:7px;font-family:'Tajawal',sans-serif;
+  font-size:.76rem;cursor:pointer;margin-top:2px;}
+.add-lang-btn:hover{background:rgba(201,168,76,.12);}
+
+/* ══ ended langs ══ */
+.ended-lang-card{background:var(--bg4);border:1px solid rgba(255,255,255,.07);
+  border-radius:9px;padding:13px;margin-bottom:8px;}
+.ended-lang-title{font-size:.74rem;color:var(--gold);margin-bottom:8px;
+  display:flex;align-items:center;gap:6px;}
+
+/* ══ جدول الصفحات ══ */
+.pages-table{width:100%;border-collapse:collapse;}
+.pages-table th{font-size:.66rem;color:var(--silver);padding:8px 12px;
   border-bottom:1px solid var(--border);text-align:right;font-weight:500;letter-spacing:.5px;}
-.content-table td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.04);font-size:.78rem;}
-.content-table tr:hover td{background:rgba(255,255,255,.02);}
-.content-type{padding:2px 8px;border-radius:4px;font-size:.62rem;font-weight:600;}
-.type-video{background:rgba(59,130,246,.12);color:#60a5fa;}
-.type-audio{background:rgba(168,85,247,.12);color:#c084fc;}
-.content-actions{display:flex;gap:5px;}
+.pages-table td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.04);font-size:.78rem;}
+.pages-table tr:hover td{background:rgba(255,255,255,.02);}
+.status-badge{padding:2px 8px;border-radius:4px;font-size:.62rem;font-weight:600;}
+.badge-upcoming{background:rgba(59,130,246,.12);color:#60a5fa;}
+.badge-live{background:rgba(220,50,50,.12);color:#ff7070;}
+.badge-ended{background:rgba(34,197,94,.1);color:#86efac;}
+.badge-recorded{background:rgba(168,85,247,.12);color:#c084fc;}
+.cat-badge{padding:2px 7px;border-radius:4px;font-size:.6rem;}
+.cat-recorded{background:rgba(168,85,247,.1);color:#c084fc;}
+.cat-sync{background:rgba(59,130,246,.1);color:#60a5fa;}
+.cat-obs{background:rgba(249,115,22,.1);color:#fb923c;}
 
-/* ══ modal ══ */
-.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.6);
-  display:none;align-items:center;justify-content:center;}
-.modal-overlay.open{display:flex;}
-.modal{background:var(--bg3);border:1px solid var(--border);border-radius:14px;
-  padding:24px;width:90%;max-width:540px;max-height:85vh;overflow-y:auto;}
-.modal-title{font-family:'Amiri',serif;font-size:1.1rem;color:var(--white);
-  margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;}
-.modal-close{background:none;border:none;color:var(--silver);font-size:1.1rem;cursor:pointer;}
-
-/* ══ upload zone ══ */
-.upload-zone{border:1px dashed rgba(255,255,255,.12);border-radius:8px;padding:20px;
-  text-align:center;cursor:pointer;transition:border-color .2s;margin-bottom:8px;}
-.upload-zone:hover{border-color:rgba(201,168,76,.35);}
-.upload-zone input{display:none;}
-.upload-icon{font-size:1.8rem;margin-bottom:6px;opacity:.5;}
-.upload-text{font-size:.74rem;color:var(--silver);}
-.upload-status{font-size:.72rem;color:var(--gold);margin-top:4px;min-height:16px;}
-
-/* ══ toast ══ */
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+/* ══ TOAST ══ */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(14px);
   background:var(--bg4);border:1px solid var(--border);border-radius:8px;
-  padding:10px 20px;font-size:.78rem;color:var(--white);
-  opacity:0;transition:all .3s;pointer-events:none;z-index:500;white-space:nowrap;}
+  padding:9px 20px;font-size:.76rem;color:var(--white);
+  opacity:0;transition:all .3s;pointer-events:none;z-index:999;white-space:nowrap;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .toast.ok{border-color:rgba(34,197,94,.3);color:#86efac;}
 .toast.err{border-color:rgba(220,53,69,.3);color:#fca5a5;}
 
-/* ══ toggle ══ */
-.toggle-wrap{display:flex;align-items:center;gap:10px;}
-.toggle{position:relative;width:40px;height:22px;cursor:pointer;}
-.toggle input{display:none;}
-.toggle-track{position:absolute;inset:0;border-radius:11px;background:rgba(255,255,255,.1);transition:.3s;}
-.toggle input:checked + .toggle-track{background:var(--green-lt);}
-.toggle-thumb{position:absolute;top:3px;right:3px;width:16px;height:16px;
-  border-radius:50%;background:#fff;transition:.3s;}
-.toggle input:checked ~ .toggle-thumb{right:calc(100% - 19px);}
+/* ══ stats ══ */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:18px;}
+.stat-card{background:var(--bg3);border:1px solid var(--border);border-radius:9px;
+  padding:14px;text-align:center;}
+.stat-num{font-family:'Amiri',serif;font-size:1.8rem;color:var(--gold);display:block;}
+.stat-lbl{font-size:.64rem;color:var(--silver);letter-spacing:.5px;}
 
-/* ══ progress bar ══ */
-.upload-progress{width:100%;height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:6px;overflow:hidden;}
-.upload-progress-fill{height:100%;background:linear-gradient(90deg,var(--green-lt),var(--gold));
-  border-radius:2px;width:0;transition:width .3s;}
+/* ══ feedback slider ══ */
+#f-feedback::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;
+  border-radius:50%;background:var(--gold);cursor:pointer;}
+#f-feedback::-moz-range-thumb{width:13px;height:13px;border-radius:50%;
+  background:var(--gold);cursor:pointer;border:none;}
 
-@media(max-width:768px){
-  #sidebar{width:60px;}
-  .sb-item span:not(.sb-item-icon){display:none;}
-  .sb-logo-ar,.sb-logo-en,.sb-section{display:none;}
-  #main{margin-right:60px;}
-  .live-mode-grid{grid-template-columns:1fr;}
-}
+/* ══ settings ══ */
+#page-settings .card{max-width:540px;}
 </style>
 </head>
 <body>
 
-<!-- شاشة الدخول -->
+<!-- LOGIN -->
 <div id="login-screen">
   <div class="login-box">
     <div class="login-icon">🔐</div>
@@ -236,885 +226,776 @@ select.inp option{background:var(--bg3);}
   </div>
 </div>
 
-<!-- sidebar -->
-<div id="sidebar">
-  <div class="sb-logo">
-    <div class="sb-logo-ar">الإثراء الديني</div>
-    <div class="sb-logo-en">ADMIN PANEL</div>
-  </div>
-  <nav class="sb-nav">
-    <div class="sb-section">الرئيسية</div>
-    <button class="sb-item active" onclick="showPage('dashboard')">
-      <span class="sb-item-icon">📊</span><span>لوحة التحكم</span>
-    </button>
+<!-- APP -->
+<div id="app">
 
-    <div class="sb-section">البث المباشر</div>
-    <button class="sb-item" onclick="showPage('live')">
-      <span class="sb-item-icon">🔴</span><span>إدارة البث</span>
-    </button>
-
-    <div class="sb-section">المحتوى</div>
-    <button class="sb-item" onclick="showPage('content')">
-      <span class="sb-item-icon">📹</span><span>الفيديوهات</span>
-    </button>
-    <button class="sb-item" onclick="showPage('audio')">
-      <span class="sb-item-icon">🎙</span><span>الصوتيات</span>
-    </button>
-
-    <div class="sb-section">الإعدادات</div>
-    <button class="sb-item" onclick="showPage('settings')">
-      <span class="sb-item-icon">⚙</span><span>إعدادات المنصة</span>
-    </button>
-  </nav>
-  <div class="sb-footer">
-    <div class="sb-live-status">
-      <div class="sb-live-dot" id="live-dot"></div>
-      <span id="live-status-txt">لا يوجد بث</span>
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-ar" id="sb-name">الإثراء الديني</div>
+      <div class="sb-logo-en">ADMIN PANEL</div>
     </div>
-  </div>
-</div>
-
-<!-- main -->
-<div id="main">
-
-  <!-- ══ dashboard ══ -->
-  <div class="page-content active" id="page-dashboard">
-    <div class="main-header">
-      <div><div class="page-title">لوحة التحكم</div><div class="page-sub">نظرة عامة على المنصة</div></div>
-    </div>
-    <div style="padding:24px">
-      <div class="stats-grid" id="stats-grid">
-        <div class="stat-card"><span class="stat-num" id="st-content">—</span><span class="stat-lbl">محتوى منشور</span></div>
-        <div class="stat-card"><span class="stat-num" id="st-videos">—</span><span class="stat-lbl">فيديو</span></div>
-        <div class="stat-card"><span class="stat-num" id="st-audio">—</span><span class="stat-lbl">صوتي</span></div>
-        <div class="stat-card"><span class="stat-num" id="st-live">—</span><span class="stat-lbl">حالة البث</span></div>
-      </div>
-      <div class="card">
-        <div class="card-title"><span class="card-title-icon">🔴</span> البث الحالي</div>
-        <div id="dash-live-info" style="font-size:.82rem;color:var(--silver);">جاري التحميل...</div>
-      </div>
-      <div class="card">
-        <div class="card-title"><span class="card-title-icon">🔗</span> روابط المنصة</div>
-        <div style="display:flex;flex-direction:column;gap:8px;">
-          <div style="display:flex;align-items:center;gap:10px;">
-            <span style="font-size:.72rem;color:var(--silver);min-width:100px;">الصفحة الرئيسية</span>
-            <code style="font-size:.72rem;color:var(--gold);background:rgba(201,168,76,.06);padding:4px 10px;border-radius:4px;">index.html</code>
-            <button class="btn btn-gray btn-sm" onclick="window.open('index.html')">فتح</button>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;">
-            <span style="font-size:.72rem;color:var(--silver);min-width:100px;">شاشة المشاهد</span>
-            <code style="font-size:.72rem;color:var(--gold);background:rgba(201,168,76,.06);padding:4px 10px;border-radius:4px;">watch.html</code>
-            <button class="btn btn-gray btn-sm" onclick="window.open('watch.html')">فتح</button>
-          </div>
-        </div>
+    <nav class="sb-nav">
+      <div class="sb-sec">الرئيسية</div>
+      <button class="sb-item active" data-page="dashboard">
+        <span class="sb-icon">📊</span><span>لوحة التحكم</span>
+      </button>
+      <div class="sb-sec">الصفحات</div>
+      <button class="sb-item" data-page="pages">
+        <span class="sb-icon">📋</span><span>كل الصفحات</span>
+      </button>
+      <button class="sb-item" data-page="create">
+        <span class="sb-icon">➕</span><span>إنشاء صفحة</span>
+      </button>
+      <div class="sb-sec">الإعدادات</div>
+      <button class="sb-item" data-page="settings">
+        <span class="sb-icon">⚙</span><span>إعدادات المنصة</span>
+      </button>
+    </nav>
+    <div class="sb-footer">
+      <div class="sb-status">
+        <div class="live-dot" id="live-dot"></div>
+        <span id="live-status-txt">لا يوجد بث</span>
       </div>
     </div>
   </div>
 
-  <!-- ══ إدارة البث ══ -->
-  <div class="page-content" id="page-live">
-    <div class="main-header">
-      <div><div class="page-title">إدارة البث المباشر</div><div class="page-sub">تحكم في البث وإعداد اللغات</div></div>
-      <div class="header-actions">
-        <button class="btn btn-red" id="btn-stop-live" onclick="stopLive()" style="display:none">⏹ إيقاف البث</button>
-        <button class="btn btn-green" id="btn-start-live" onclick="startLive()">▶ بدء البث</button>
+  <!-- MAIN -->
+  <div id="main">
+
+    <!-- ══ DASHBOARD ══ -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <div><div class="page-title">لوحة التحكم</div><div class="page-sub">نظرة عامة</div></div>
+      </div>
+      <div style="padding:20px 24px">
+        <div class="stats-row">
+          <div class="stat-card"><span class="stat-num" id="st-all">—</span><span class="stat-lbl">إجمالي الصفحات</span></div>
+          <div class="stat-card"><span class="stat-num" id="st-live">—</span><span class="stat-lbl">بث جارٍ</span></div>
+          <div class="stat-card"><span class="stat-num" id="st-upcoming">—</span><span class="stat-lbl">قادمة</span></div>
+          <div class="stat-card"><span class="stat-num" id="st-ended">—</span><span class="stat-lbl">منتهية/مسجلة</span></div>
+        </div>
+        <div class="card">
+          <div class="card-title">🔴 البث الجاري الآن</div>
+          <div id="dash-live-info" style="font-size:.8rem;color:var(--silver)">لا يوجد بث جارٍ</div>
+        </div>
+        <div class="card">
+          <div class="card-title">🔗 روابط المنصة</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="font-size:.7rem;color:var(--silver);min-width:90px;">الرئيسية</span>
+              <code style="font-size:.7rem;color:var(--gold);background:rgba(201,168,76,.06);padding:3px 9px;border-radius:4px;">index.html</code>
+              <button class="btn btn-gray btn-sm" onclick="window.open('index.html')">فتح</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="font-size:.7rem;color:var(--silver);min-width:90px;">شاشة المشاهد</span>
+              <code style="font-size:.7rem;color:var(--gold);background:rgba(201,168,76,.06);padding:3px 9px;border-radius:4px;">watch.html</code>
+              <button class="btn btn-gray btn-sm" onclick="window.open('watch.html')">فتح</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-    <div style="padding:24px">
 
-      <!-- رابط الفيديو -->
-      <div class="card">
-        <div class="card-title"><span class="card-title-icon">📺</span> الفيديو</div>
-        <div class="field">
-          <label>رابط يوتيوب (مسجل أو بث مباشر)</label>
-          <input class="inp" id="live-yt-url" placeholder="https://www.youtube.com/watch?v=...">
-        </div>
-        <div class="field">
-          <label>عنوان الجلسة</label>
-          <input class="inp" id="live-title" placeholder="مثال: خطبة الجمعة — المسجد الحرام">
+    <!-- ══ PAGES LIST ══ -->
+    <div class="page" id="page-pages">
+      <div class="page-header">
+        <div><div class="page-title">كل الصفحات</div><div class="page-sub">جميع البثوث والمحتوى</div></div>
+        <div class="hdr-actions">
+          <button class="btn btn-green" onclick="goCreate()">➕ إنشاء صفحة</button>
         </div>
       </div>
-
-      <!-- نوع البث -->
-      <div class="card">
-        <div class="card-title"><span class="card-title-icon">⚙</span> نوع البث</div>
-        <div class="live-mode-grid" style="grid-template-columns:repeat(2,1fr)">
-          <div class="mode-card" id="mode-recorded" onclick="setMode('recorded')">
-            <div class="mode-icon">🎬</div>
-            <div class="mode-title">محتوى مسجل</div>
-            <div class="mode-sub">فيديو + ترجمة + صوت من ملفات</div>
-          </div>
-          <div class="mode-card" id="mode-sync" onclick="setMode('sync')">
-            <div class="mode-icon">🔄</div>
-            <div class="mode-title">لايف + تزامن</div>
-            <div class="mode-sub">بث مباشر + ملفات ترجمة وصوت</div>
-          </div>
-          <div class="mode-card" id="mode-obs" onclick="setMode('obs')">
-            <div class="mode-icon">📡</div>
-            <div class="mode-title">لايف + OBS</div>
-            <div class="mode-sub">نص من OBS + صوت يوتيوب</div>
-          </div>
-          <div class="mode-card mode-off" id="mode-none" onclick="setMode('none')">
-            <div class="mode-icon">⏸</div>
-            <div class="mode-title">إيقاف</div>
-            <div class="mode-sub">لا يوجد بث الآن</div>
-          </div>
+      <div style="padding:20px 24px">
+        <div class="card" style="padding:0;overflow:hidden">
+          <table class="pages-table">
+            <thead><tr>
+              <th>العنوان</th><th>النوع</th><th>الموقع</th><th>الفئة</th><th>الحالة</th><th>إجراءات</th>
+            </tr></thead>
+            <tbody id="pages-tbody"></tbody>
+          </table>
         </div>
       </div>
+    </div>
 
-      <!-- إعدادات OBS (تظهر عند اختيار obs) -->
-      <div class="card" id="obs-settings" style="display:none">
-        <div class="card-title"><span class="card-title-icon">📡</span> إعدادات OBS WebSocket</div>
-        <div class="inp-row">
+    <!-- ══ CREATE / EDIT ══ -->
+    <div class="page" id="page-create">
+      <div class="page-header">
+        <div><div class="page-title" id="create-page-title">إنشاء صفحة جديدة</div>
+          <div class="page-sub">أدخل بيانات الصفحة</div></div>
+        <div class="hdr-actions">
+          <button class="btn btn-gray" onclick="showPage('pages')">← رجوع</button>
+          <button class="btn btn-green" onclick="savePage()">💾 حفظ</button>
+        </div>
+      </div>
+      <div style="padding:20px 24px;max-width:760px">
+
+        <!-- معلومات أساسية -->
+        <div class="card">
+          <div class="card-title">📝 المعلومات الأساسية</div>
+          <div class="inp-row">
+            <div class="field"><label>العنوان بالعربي</label>
+              <input class="inp" id="f-title-ar" placeholder="مثال: خطبة الجمعة"></div>
+            <div class="field"><label>العنوان بالإنجليزي</label>
+              <input class="inp" id="f-title-en" placeholder="Friday Sermon"></div>
+          </div>
+          <div class="field"><label>رابط يوتيوب (embed أو watch)</label>
+            <input class="inp" id="f-yt-url" placeholder="https://www.youtube.com/watch?v=..."></div>
+          <div class="inp-row">
+            <div class="field"><label>نوع البث</label>
+              <select class="inp" id="f-type">
+                <option value="خطبة">خطبة</option>
+                <option value="درس">درس</option>
+                <option value="قرآن">قرآن</option>
+                <option value="ندوة">ندوة</option>
+                <option value="أخرى">أخرى (اكتب)</option>
+              </select></div>
+            <div class="field" id="f-type-custom-wrap" style="display:none">
+              <label>اكتب النوع</label>
+              <input class="inp" id="f-type-custom" placeholder="النوع..."></div>
+            <div class="field"><label>موقع البث</label>
+              <select class="inp" id="f-location">
+                <option value="مكة">مكة المكرمة</option>
+                <option value="المدينة">المدينة المنورة</option>
+                <option value="أخرى">أخرى</option>
+              </select></div>
+          </div>
+        </div>
+
+        <!-- فئة البث -->
+        <div class="card">
+          <div class="card-title">📡 فئة البث</div>
+          <div class="type-chips">
+            <button class="type-chip active" data-cat="recorded" onclick="setCat('recorded',this)">🎬 مسجل</button>
+            <button class="type-chip" data-cat="sync" onclick="setCat('sync',this)">🔄 لايف متزامن</button>
+            <button class="type-chip" data-cat="obs" onclick="setCat('obs',this)">📡 لايف OBS</button>
+          </div>
+          <input type="hidden" id="f-cat" value="recorded">
+
+          <!-- OBS settings -->
+          <div id="obs-settings-wrap" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+            <div class="inp-row">
+              <div class="field"><label>منفذ OBS WebSocket</label>
+                <input class="inp" id="f-obs-port" value="4455"></div>
+              <div class="field"><label>كلمة مرور OBS (اختياري)</label>
+                <input class="inp" id="f-obs-pass" type="password" placeholder="اتركه فارغاً"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- اللغات -->
+        <div class="card" id="langs-card">
+          <div class="card-title">🌐 اللغات والترجمات</div>
+          <div class="langs-wrap" id="langs-wrap"></div>
+          <button class="add-lang-btn" onclick="addLang()">+ إضافة لغة</button>
+        </div>
+
+        <!-- إعدادات الصوت -->
+        <div class="card">
+          <div class="card-title">🎚 إعدادات الصوت</div>
           <div class="field">
-            <label>منفذ OBS (نفسه لكل الأجهزة)</label>
-            <input class="inp" id="obs-port" value="4455">
-          </div>
-          <div class="field">
-            <label>كلمة مرور OBS (اختياري)</label>
-            <input class="inp" id="obs-pass" type="password" placeholder="اتركه فارغاً">
-          </div>
-        </div>
-      </div>
-
-      <!-- Feedback Slider (يظهر في sync و obs) -->
-      <div class="card" id="feedback-card" style="display:none">
-        <div class="card-title"><span class="card-title-icon">🎚</span> نسبة الصوت الأصلي في الخلفية</div>
-        <div class="feedback-wrap">
-          <span class="feedback-label">مكتوم</span>
-          <input type="range" class="feedback-slider" id="feedback-slider" min="0" max="100" value="0"
-            oninput="updateFeedback(this.value)">
-          <span class="feedback-label">كامل</span>
-          <span class="feedback-val" id="feedback-val">0%</span>
-        </div>
-        <div style="font-size:.68rem;color:rgba(255,255,255,.25);margin-top:8px;">
-          يتحكم بنسبة الصوت الأصلي الذي يسمعه المشاهد خلف صوت الترجمة
-        </div>
-      </div>
-
-      <!-- اللغات -->
-      <div class="card">
-        <div class="card-title"><span class="card-title-icon">🌐</span> اللغات</div>
-        <div class="langs-grid" id="admin-langs-grid"></div>
-        <button class="add-lang-btn" onclick="addAdminLang()">+ إضافة لغة</button>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ══ المحتوى المسجل ══ -->
-  <div class="page-content" id="page-content">
-    <div class="main-header">
-      <div><div class="page-title">المحتوى المسجل</div><div class="page-sub">إدارة الفيديوهات والمحاضرات</div></div>
-      <div class="header-actions">
-        <button class="btn btn-green" onclick="openAddContent('video')">+ إضافة فيديو</button>
-      </div>
-    </div>
-    <div style="padding:24px">
-      <div class="card" style="padding:0;overflow:hidden">
-        <table class="content-table">
-          <thead>
-            <tr>
-              <th>العنوان</th>
-              <th>الفئة</th>
-              <th>المدة</th>
-              <th>اللغات</th>
-              <th>الحالة</th>
-              <th>إجراءات</th>
-            </tr>
-          </thead>
-          <tbody id="content-tbody"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══ الصوتيات ══ -->
-  <div class="page-content" id="page-audio">
-    <div class="main-header">
-      <div><div class="page-title">الصوتيات</div><div class="page-sub">إدارة المحاضرات الصوتية</div></div>
-      <div class="header-actions">
-        <button class="btn btn-green" onclick="openAddContent('audio')">+ إضافة صوتي</button>
-      </div>
-    </div>
-    <div style="padding:24px">
-      <div class="card" style="padding:0;overflow:hidden">
-        <table class="content-table">
-          <thead>
-            <tr>
-              <th>العنوان</th>
-              <th>الفئة</th>
-              <th>المدة</th>
-              <th>اللغات</th>
-              <th>الحالة</th>
-              <th>إجراءات</th>
-            </tr>
-          </thead>
-          <tbody id="audio-tbody"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══ الإعدادات ══ -->
-  <div class="page-content" id="page-settings">
-    <div class="main-header">
-      <div><div class="page-title">إعدادات المنصة</div><div class="page-sub">تخصيص الاسم والألوان</div></div>
-      <div class="header-actions">
-        <button class="btn btn-green" onclick="saveSettings()">💾 حفظ</button>
-      </div>
-    </div>
-    <div style="padding:24px">
-      <div class="card">
-        <div class="card-title"><span class="card-title-icon">🏷</span> هوية المنصة</div>
-        <div class="inp-row">
-          <div class="field">
-            <label>اسم المنصة بالعربي</label>
-            <input class="inp" id="set-name-ar" placeholder="الإثراء الديني">
-          </div>
-          <div class="field">
-            <label>اسم المنصة بالإنجليزي</label>
-            <input class="inp" id="set-name-en" placeholder="Al-Ithraa Al-Dini">
+            <label>نسبة الصوت الأصلي في الخلفية</label>
+            <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
+              <span style="font-size:.7rem;color:var(--silver);white-space:nowrap">مكتوم</span>
+              <input type="range" id="f-feedback" min="0" max="100" value="0"
+                style="flex:1;-webkit-appearance:none;height:3px;background:rgba(255,255,255,.12);
+                border-radius:2px;outline:none;cursor:pointer;direction:ltr"
+                oninput="document.getElementById('f-feedback-val').textContent=this.value+'%'">
+              <span style="font-size:.7rem;color:var(--silver);white-space:nowrap">كامل</span>
+              <span id="f-feedback-val" style="font-size:.76rem;color:var(--gold);min-width:36px;text-align:center">0%</span>
+            </div>
+            <div style="font-size:.65rem;color:rgba(255,255,255,.2);margin-top:6px">
+              نسبة الصوت الأصلي الذي يسمعه المشاهد خلف صوت الترجمة
+            </div>
           </div>
         </div>
-        <div class="field">
-          <label>أيقونة المنصة (emoji)</label>
-          <input class="inp" id="set-icon" placeholder="🕌" style="max-width:100px">
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title"><span class="card-title-icon">🎨</span> الألوان</div>
-        <div class="inp-row">
-          <div class="field">
-            <label>اللون الأخضر الرئيسي</label>
-            <input type="color" class="inp" id="set-green" value="#1a472a" style="height:40px;padding:4px;">
+
+        <!-- حالة الصفحة -->
+        <div class="card">
+          <div class="card-title">📌 حالة الصفحة</div>
+          <div class="status-tabs">
+            <div class="status-tab active upcoming" data-status="upcoming" onclick="setStatus('upcoming',this)">
+              ⏳ قادمة
+            </div>
+            <div class="status-tab live" data-status="live" onclick="setStatus('live',this)">
+              🔴 جارية
+            </div>
+            <div class="status-tab ended" data-status="ended" onclick="setStatus('ended',this)">
+              ✅ منتهية
+            </div>
           </div>
-          <div class="field">
-            <label>اللون الذهبي</label>
-            <input type="color" class="inp" id="set-gold" value="#c9a84c" style="height:40px;padding:4px;">
+          <input type="hidden" id="f-status" value="upcoming">
+          <div id="status-hint" style="font-size:.68rem;color:rgba(255,255,255,.25);margin-top:8px">
+            الصفحة ستظهر للمشاهد لكن البث لم يبدأ بعد — شاشة انتظار
           </div>
         </div>
+
+        <!-- ملفات محدّثة عند المنتهية -->
+        <div class="card" id="ended-update-card" style="display:none">
+          <div class="card-title">🔄 تحديث ملفات (اختياري)</div>
+          <div style="font-size:.72rem;color:rgba(255,255,255,.3);margin-bottom:12px">
+            اترك أي حقل فارغاً لإبقاء الملف الحالي
+          </div>
+          <div class="field"><label>رابط يوتيوب جديد (اختياري)</label>
+            <input class="inp" id="f-new-yt" placeholder="https://www.youtube.com/watch?v=..."></div>
+          <div class="langs-wrap" id="ended-langs-wrap"></div>
+          <button class="add-lang-btn" onclick="addEndedLang()">+ إضافة لغة جديدة</button>
+        </div>
+
       </div>
-      <div class="card">
-        <div class="card-title"><span class="card-title-icon">🔐</span> الأمان</div>
-        <div class="field">
-          <label>كلمة مرور لوحة التحكم</label>
-          <input class="inp" id="set-pass" type="password" placeholder="اتركه فارغاً للإبقاء على الحالي">
+    </div>
+
+    <!-- ══ SETTINGS ══ -->
+    <div class="page" id="page-settings">
+      <div class="page-header">
+        <div><div class="page-title">إعدادات المنصة</div></div>
+        <div class="hdr-actions">
+          <button class="btn btn-green" onclick="saveSettings()">💾 حفظ</button>
+        </div>
+      </div>
+      <div style="padding:20px 24px">
+        <div class="card">
+          <div class="card-title">🏷 هوية المنصة</div>
+          <div class="inp-row">
+            <div class="field"><label>الاسم بالعربي</label>
+              <input class="inp" id="set-name-ar" placeholder="الإثراء الديني"></div>
+            <div class="field"><label>الاسم بالإنجليزي</label>
+              <input class="inp" id="set-name-en" placeholder="Al-Ithraa Al-Dini"></div>
+          </div>
+          <div class="field"><label>أيقونة (emoji)</label>
+            <input class="inp" id="set-icon" placeholder="🕌" style="max-width:90px"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">🎨 الألوان</div>
+          <div class="inp-row">
+            <div class="field"><label>الأخضر الرئيسي</label>
+              <input type="color" class="inp" id="set-green" value="#1a472a" style="height:38px;padding:4px"></div>
+            <div class="field"><label>الذهبي</label>
+              <input type="color" class="inp" id="set-gold" value="#c9a84c" style="height:38px;padding:4px"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">🔐 الأمان</div>
+          <div class="field"><label>كلمة مرور لوحة التحكم</label>
+            <input class="inp" id="set-pass" type="password" placeholder="اتركه فارغاً للإبقاء على الحالي"></div>
         </div>
       </div>
     </div>
-  </div>
 
-</div><!-- /main -->
-
-<!-- modal إضافة محتوى -->
-<div class="modal-overlay" id="content-modal">
-  <div class="modal">
-    <div class="modal-title">
-      <span id="modal-title-txt">إضافة محتوى</span>
-      <button class="modal-close" onclick="closeModal()">✕</button>
-    </div>
-    <div id="modal-body"></div>
-  </div>
-</div>
-
-<!-- modal لغات المحتوى -->
-<div class="modal-overlay" id="langs-modal">
-  <div class="modal">
-    <div class="modal-title">
-      <span>🌐 لغات المحتوى</span>
-      <button class="modal-close" onclick="closeLangsModal()">✕</button>
-    </div>
-    <div id="langs-modal-body"></div>
-  </div>
-</div>
+  </div><!-- /main -->
+</div><!-- /app -->
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ══ Supabase ══
-var SUPA_URL = 'https://umowxqalocwyrnvcuhyh.supabase.co';
-var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtb3d4cWFsb2N3eXJudmN1aHloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNzMyMDIsImV4cCI6MjA4ODY0OTIwMn0.Tqaz8x6aKmdiBWYXEx4ujNdk0kiJgyRJ_Kk2OS-Yv0E';
-var ADMIN_PASS = 'admin123';
+// ══ SUPABASE ══
+var SUPA_URL='https://umowxqalocwyrnvcuhyh.supabase.co';
+var SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtb3d4cWFsb2N3eXJudmN1aHloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNzMyMDIsImV4cCI6MjA4ODY0OTIwMn0.Tqaz8x6aKmdiBWYXEx4ujNdk0kiJgyRJ_Kk2OS-Yv0E';
+var ADMIN_PASS='admin123';
+var EDIT_ID=null; // صفحة يتم تعديلها
 
-async function supa(method, table, body, params) {
-  var url = SUPA_URL + '/rest/v1/' + table;
-  if (params) url += '?' + params;
-  var opts = {
-    method: method,
-    headers: {
-      'apikey': SUPA_KEY,
-      'Authorization': 'Bearer ' + SUPA_KEY,
-      'Content-Type': 'application/json',
-      'Prefer': method === 'POST' ? 'return=representation' : 'return=minimal'
-    }
-  };
-  if (body) opts.body = JSON.stringify(body);
-  var r = await fetch(url, opts);
-  if (!r.ok) { var e = await r.text(); throw new Error(e); }
-  var txt = await r.text();
-  return txt ? JSON.parse(txt) : null;
+async function db(method,table,body,params){
+  var url=SUPA_URL+'/rest/v1/'+table+(params?'?'+params:'');
+  var headers={'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json'};
+  if(method==='POST'||method==='PATCH') headers['Prefer']='return=representation';
+  var r=await fetch(url,{method:method,headers:headers,body:body?JSON.stringify(body):undefined});
+  if(!r.ok) throw new Error(await r.text());
+  var t=await r.text(); return t?JSON.parse(t):null;
 }
 
-async function supaUpload(bucket, path, file) {
-  var url = SUPA_URL + '/storage/v1/object/' + bucket + '/' + path;
-  var r = await fetch(url, {
-    method: 'POST',
-    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY },
-    body: file
+async function upload(bucket,path,file){
+  var r=await fetch(SUPA_URL+'/storage/v1/object/'+bucket+'/'+path,{
+    method:'POST',
+    headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY},
+    body:file
   });
-  if (!r.ok) throw new Error(await r.text());
-  return SUPA_URL + '/storage/v1/object/public/' + bucket + '/' + path;
+  if(!r.ok) throw new Error(await r.text());
+  return SUPA_URL+'/storage/v1/object/public/'+bucket+'/'+path;
 }
 
-// ══ حالة ══
-var ST = { mode: 'none', langs: [], langCounter: 0, editContentId: null, editLangsContentId: null };
-var SETTINGS = { site_name: 'الإثراء الديني', site_name_en: 'Al-Ithraa Al-Dini', logo_icon: '🕌', primary_color: '#1a472a', gold_color: '#c9a84c', admin_password: 'admin123' };
-
-// ══ تسجيل الدخول ══
-function doLogin() {
-  var pass = document.getElementById('pass-inp').value;
-  if (pass === ADMIN_PASS || pass === SETTINGS.admin_password) {
+// ══ LOGIN ══
+function doLogin(){
+  var p=document.getElementById('pass-inp').value;
+  if(p===ADMIN_PASS){
+    sessionStorage.setItem('admin_ok','1');
     document.getElementById('login-screen').classList.add('hide');
     initAdmin();
   } else {
-    document.getElementById('login-err').textContent = 'كلمة المرور غير صحيحة';
+    document.getElementById('login-err').textContent='كلمة المرور غير صحيحة';
+    document.getElementById('pass-inp').value='';
   }
 }
 
-// ══ تهيئة ══
-async function initAdmin() {
+// ══ INIT ══
+async function initAdmin(){
   await loadSettings();
-  await clearTestData();
-  await loadDashboard();
-  await loadLiveSession();
-  await loadContentTable('video');
-  await loadContentTable('audio');
-  startRealtimeLive();
+  loadDashboard();
+  loadPagesTable();
+  addLang(); addLang(); // بطاقتان افتراضيتان
+  startRealtime();
 }
 
-// ══ حذف البيانات التجريبية (مرة واحدة) ══
-var _testDataCleared = false;
-async function clearTestData() {
-  if (_testDataCleared || localStorage.getItem('testDataCleared')) return;
-  try {
-    // احذف فقط البيانات التجريبية التي يوتيوب ID = 1oZZJcEq7Y0
-    await supa('DELETE', 'content', null, 'yt_id=eq.1oZZJcEq7Y0');
-    _testDataCleared = true;
-    localStorage.setItem('testDataCleared', '1');
-  } catch(e) {}
+// ══ NAVIGATION ══
+function showPage(name){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.getElementById('page-'+name).classList.add('active');
+  document.querySelectorAll('.sb-item').forEach(function(b){b.classList.remove('active');});
+  var btn=document.querySelector('[data-page="'+name+'"]');
+  if(btn) btn.classList.add('active');
 }
 
-// ══ إعدادات ══
-async function loadSettings() {
-  try {
-    var data = await supa('GET', 'settings', null, 'select=*&limit=1');
-    if (data && data[0]) {
-      SETTINGS = data[0];
-      ADMIN_PASS = SETTINGS.admin_password || 'admin123';
-      document.getElementById('set-name-ar').value = SETTINGS.site_name || '';
-      document.getElementById('set-name-en').value = SETTINGS.site_name_en || '';
-      document.getElementById('set-icon').value = SETTINGS.logo_icon || '🕌';
-      document.getElementById('set-green').value = SETTINGS.primary_color || '#1a472a';
-      document.getElementById('set-gold').value = SETTINGS.gold_color || '#c9a84c';
-    }
-  } catch(e) { console.error(e); }
+document.querySelectorAll('.sb-item').forEach(function(btn){
+  btn.addEventListener('click',function(){showPage(this.dataset.page);});
+});
+
+function goCreate(){
+  EDIT_ID=null;
+  document.getElementById('create-page-title').textContent='إنشاء صفحة جديدة';
+  resetCreateForm();
+  showPage('create');
 }
 
-async function saveSettings() {
-  var body = {
-    site_name: document.getElementById('set-name-ar').value,
-    site_name_en: document.getElementById('set-name-en').value,
-    logo_icon: document.getElementById('set-icon').value,
-    primary_color: document.getElementById('set-green').value,
-    gold_color: document.getElementById('set-gold').value,
-    updated_at: new Date().toISOString()
-  };
-  var newPass = document.getElementById('set-pass').value;
-  if (newPass) body.admin_password = newPass;
-  try {
-    await supa('PATCH', 'settings', body, 'id=eq.1');
-    toast('✅ تم حفظ الإعدادات', 'ok');
-  } catch(e) { toast('❌ خطأ: ' + e.message, 'err'); }
-}
-
-// ══ dashboard ══
-async function loadDashboard() {
-  try {
-    var all = await supa('GET', 'content', null, 'select=id,type,is_published');
-    var pub = (all||[]).filter(function(x){ return x.is_published; });
-    var vids = pub.filter(function(x){ return x.type==='video'; });
-    var auds = pub.filter(function(x){ return x.type==='audio'; });
-    document.getElementById('st-content').textContent = pub.length;
-    document.getElementById('st-videos').textContent = vids.length;
-    document.getElementById('st-audio').textContent = auds.length;
-  } catch(e) {}
-}
-
-// ══ البث المباشر ══
-async function loadLiveSession() {
-  try {
-    var data = await supa('GET', 'live_session', null, 'select=*&limit=1');
-    if (!data || !data[0]) return;
-    var s = data[0];
-    setMode(s.mode || 'none', true);
-    document.getElementById('live-yt-url').value = s.yt_url || '';
-    document.getElementById('live-title').value = s.title || '';
-    if (s.obs_port) document.getElementById('obs-port').value = s.obs_port;
-    document.getElementById('feedback-slider').value = s.feedback || 0;
-    document.getElementById('feedback-val').textContent = (s.feedback||0) + '%';
-
-    var isActive = s.is_active && s.mode !== 'none';
-    document.getElementById('st-live').textContent = isActive ? '🔴' : '⚫';
-    document.getElementById('live-dot').className = 'sb-live-dot' + (isActive ? ' on' : '');
-    document.getElementById('live-status-txt').textContent = isActive ? 'بث مباشر' : 'لا يوجد بث';
-    updateLiveDash(s);
-
-    // لغات البث
-    var langs = await supa('GET', 'live_langs', null, 'select=*&session_id=eq.1&order=sort_order');
-    ST.langs = langs || [];
-    renderAdminLangs();
-  } catch(e) { console.error(e); }
-}
-
-function updateLiveDash(s) {
-  var el = document.getElementById('dash-live-info');
-  if (!s || !s.is_active || s.mode === 'none') {
-    el.innerHTML = '<span style="color:var(--silver)">لا يوجد بث نشط حالياً</span>';
-    return;
-  }
-  var modeNames = { sync: 'لايف + تزامن', obs: 'لايف + OBS' };
-  el.innerHTML = '<div style="display:flex;gap:16px;flex-wrap:wrap">' +
-    '<span>📡 <b style="color:var(--gold)">' + (modeNames[s.mode]||s.mode) + '</b></span>' +
-    '<span>📺 ' + (s.title||'—') + '</span>' +
-    '<span>🎚 Feedback: ' + (s.feedback||0) + '%</span>' +
-    '</div>';
-}
-
-function setMode(mode, silent) {
-  ST.mode = mode;
-  if (!silent) renderAdminLangs();
-  ['none','sync','obs','recorded'].forEach(function(m) {
-    var el = document.getElementById('mode-'+m);
-    if (el) el.classList.toggle('active', m === mode);
+function resetCreateForm(){
+  ['f-title-ar','f-title-en','f-yt-url','f-type-custom','f-obs-port','f-obs-pass','f-new-yt'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.value=id==='f-obs-port'?'4455':'';
   });
-  var isActive = mode !== 'none';
-  document.getElementById('obs-settings').style.display = mode === 'obs' ? 'block' : 'none';
-  document.getElementById('feedback-card').style.display = isActive ? 'block' : 'none';
-  document.getElementById('btn-stop-live').style.display = isActive ? 'inline-flex' : 'none';
-  document.getElementById('btn-start-live').style.display = isActive ? 'none' : 'inline-flex';
-  // عنوان الزر
-  var startBtn = document.getElementById('btn-start-live');
-  if (startBtn) startBtn.textContent = mode === 'recorded' ? '▶ نشر المحتوى' : '▶ بدء البث';
+  document.getElementById('f-type').value='خطبة';
+  var fb=document.getElementById('f-feedback');
+  if(fb){fb.value=0;document.getElementById('f-feedback-val').textContent='0%';}
+  document.getElementById('f-location').value='مكة';
+  setCat('recorded',document.querySelector('[data-cat="recorded"]'));
+  setStatus('upcoming',document.querySelector('[data-status="upcoming"]'));
+  document.getElementById('langs-wrap').innerHTML='';
+  document.getElementById('ended-langs-wrap').innerHTML='';
+  document.getElementById('ended-update-card').style.display='none';
+  addLang(); addLang();
 }
 
-function updateFeedback(v) {
-  document.getElementById('feedback-val').textContent = v + '%';
-  supa('PATCH', 'live_session', { feedback: parseInt(v), updated_at: new Date().toISOString() }, 'id=eq.1').catch(function(){});
+// ══ نوع البث ══
+document.getElementById('f-type').addEventListener('change',function(){
+  document.getElementById('f-type-custom-wrap').style.display=this.value==='أخرى'?'block':'none';
+});
+
+// ══ فئة البث ══
+function setCat(cat,el){
+  document.getElementById('f-cat').value=cat;
+  document.querySelectorAll('.type-chip').forEach(function(c){c.classList.remove('active');});
+  if(el) el.classList.add('active');
+  document.getElementById('obs-settings-wrap').style.display=cat==='obs'?'block':'none';
+  // أعد رسم بطاقات اللغات الموجودة بالنوع الجديد
+  var wrap=document.getElementById('langs-wrap');
+  var count=wrap.querySelectorAll('.lang-card').length||2;
+  wrap.innerHTML='';
+  for(var i=0;i<count;i++) addLang();
 }
 
-async function startLive() {
-  if (ST.mode === 'none') { toast('⚠ اختر نوع البث أولاً', 'err'); return; }
-  var body = {
-    is_active: true,
-    mode: ST.mode,
-    yt_url: document.getElementById('live-yt-url').value,
-    title: document.getElementById('live-title').value,
-    feedback: parseInt(document.getElementById('feedback-slider').value),
-    obs_port: document.getElementById('obs-port').value,
-    obs_pass: document.getElementById('obs-pass').value,
-    updated_at: new Date().toISOString()
+// ══ حالة الصفحة ══
+function setStatus(status,el){
+  document.getElementById('f-status').value=status;
+  document.querySelectorAll('.status-tab').forEach(function(t){t.classList.remove('active');});
+  if(el) el.classList.add('active');
+  var hints={
+    upcoming:'الصفحة تستعد للبث — المشاهد يرى شاشة انتظار حتى تضغط بدء البث',
+    live:'البث جارٍ الآن — المشاهد يرى الفيديو والترجمة مباشرة',
+    ended:'انتهى البث — يمكنك تحديث الملفات أو إبقاء القديم كمسجل'
   };
-  if (ST.mode === 'sync') body.sync_start = new Date().toISOString();
-  try {
-    await supa('PATCH', 'live_session', body, 'id=eq.1');
-    await saveLiveLangs();
-    toast('✅ تم بدء البث', 'ok');
-    setMode(ST.mode, true);
-    document.getElementById('live-dot').className = 'sb-live-dot on';
-    document.getElementById('live-status-txt').textContent = 'بث مباشر';
-    document.getElementById('st-live').textContent = '🔴';
-  } catch(e) { toast('❌ ' + e.message, 'err'); }
+  document.getElementById('status-hint').textContent=hints[status]||'';
+  document.getElementById('ended-update-card').style.display=status==='ended'?'block':'none';
 }
 
-async function stopLive() {
-  try {
-    await supa('PATCH', 'live_session', { is_active: false, mode: 'none', updated_at: new Date().toISOString() }, 'id=eq.1');
-    toast('⏹ تم إيقاف البث', 'ok');
-    setMode('none', true);
-    document.getElementById('live-dot').className = 'sb-live-dot';
-    document.getElementById('live-status-txt').textContent = 'لا يوجد بث';
-    document.getElementById('st-live').textContent = '⚫';
-  } catch(e) { toast('❌ ' + e.message, 'err'); }
+// ══ بطاقات اللغات ══
+var LANG_COUNT=0;
+function addLang(){
+  LANG_COUNT++;
+  var cat=document.getElementById('f-cat').value;
+  var wrap=document.getElementById('langs-wrap');
+  var i=wrap.querySelectorAll('.lang-card').length;
+  var card=buildLangCard({},i,cat);
+  wrap.insertAdjacentHTML('beforeend',card);
+  renumberLangs('langs-wrap');
 }
 
-// ══ لغات البث ══
-var LANG_COUNTER = 0;
+function buildLangCard(l,i,cat){
+  var uid='lc'+Date.now()+i;
+  var html='<div class="lang-card" id="lcard-'+i+'">';
+  html+='<div class="lang-hdr">';
+  html+='<div class="lang-num">'+(i+1)+'</div>';
+  html+='<input class="lang-name-inp" placeholder="اسم اللغة — مثال: العربية" value="'+(l.name||'')+'">';
+  html+='<button class="lang-del" onclick="delLang(this)">✕</button>';
+  html+='</div>';
 
-function renderAdminLangs() {
-  var g = document.getElementById('admin-langs-grid');
-  g.innerHTML = '';
-  ST.langs.forEach(function(l, i) {
-    g.appendChild(buildLangCard(l, i));
-  });
-}
-
-function addAdminLang() {
-  LANG_COUNTER++;
-  var newLang = { _tmpId: LANG_COUNTER, name: '', ip: '', obs_source: '', icecast_url: '', yt_audio_url: '', subtitle_url: '' };
-  ST.langs.push(newLang);
-  var card = buildLangCard(newLang, ST.langs.length - 1);
-  document.getElementById('admin-langs-grid').appendChild(card);
-}
-
-function buildLangCard(l, i) {
-  var card = document.createElement('div');
-  card.className = 'lang-card'; card.id = 'alc-' + i;
-  var inner = '<div class="lang-card-hdr">' +
-    '<div class="lang-num">' + (i+1) + '</div>' +
-    '<input class="lang-name-inp" placeholder="اسم اللغة" value="' + (l.name||'') + '" onchange="updateLangField(' + i + ',\'name\',this.value)">' +
-    '<button class="lang-del" onclick="delAdminLang(' + i + ')">✕</button>' +
-    '</div>';
-
-  if (ST.mode === 'obs') {
-    inner += '<input class="lang-inp" placeholder="IP جهاز المترجم — مثال: 192.168.1.10" value="' + (l.ip||'') + '" onchange="updateLangField(' + i + ',\'ip\',this.value)">';
-    inner += '<input class="lang-inp" placeholder="اسم Text Source في OBS" value="' + (l.obs_source||'') + '" onchange="updateLangField(' + i + ',\'obs_source\',this.value)">';
-    inner += '<input class="lang-inp" placeholder="رابط يوتيوب Unlisted للصوت" value="' + (l.yt_audio_url||'') + '" onchange="updateLangField(' + i + ',\'yt_audio_url\',this.value)">';
-    inner += '<input class="lang-inp" placeholder="رابط Icecast (اختياري)" value="' + (l.icecast_url||'') + '" onchange="updateLangField(' + i + ',\'icecast_url\',this.value)">';
-  } else if (ST.mode === 'sync' || ST.mode === 'recorded') {
-    // رابط يوتيوب (فقط في recorded)
-    if (ST.mode === 'recorded') {
-      inner += '<input class="lang-inp" placeholder="رابط يوتيوب للفيديو — https://youtube.com/watch?v=..." value="' + (l.yt_video_url||'') + '" onchange="updateLangField(' + i + ',\'yt_video_url\',this.value)" style="margin-bottom:6px">';
-    }
-    // رفع ملف ترجمة
-    inner += '<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">'
-      + '<button class="btn btn-gold btn-sm" onclick="document.getElementById(\'lsf-' + i + '\').click()">📂 ASS/SRT</button>'
-      + '<span id="lss-' + i + '" style="font-size:.7rem;color:var(--silver)">' + (l.subtitle_url ? '✅ مرفوع' : 'لم يُختر ملف') + '</span>'
-      + '<input type="file" id="lsf-' + i + '" accept=".ass,.ssa,.srt" style="display:none" onchange="uploadLiveLangFile(this,\'sub\',' + i + ')">'
-      + '<input type="hidden" id="lsu-' + i + '" value="' + (l.subtitle_url||'') + '">'
-      + '</div>';
-    // رفع ملف صوت
-    inner += '<div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">'
-      + '<button class="btn btn-gold btn-sm" onclick="document.getElementById(\'laf-' + i + '\').click()">🎵 صوت</button>'
-      + '<span id="las-' + i + '" style="font-size:.7rem;color:var(--silver)">' + (l.yt_audio_url ? '✅ مرفوع' : 'لم يُختر ملف') + '</span>'
-      + '<input type="file" id="laf-' + i + '" accept="audio/*" style="display:none" onchange="uploadLiveLangFile(this,\'aud\',' + i + ')">'
-      + '<input type="hidden" id="lau-' + i + '" value="' + (l.yt_audio_url||'') + '">'
-      + '</div>';
+  if(cat==='obs'){
+    html+='<input class="lang-inp" placeholder="IP جهاز المترجم — مثال: 192.168.1.10" value="'+(l.ip||'')+'">';
+    html+='<input class="lang-inp" placeholder="اسم Text Source في OBS" value="'+(l.obs_source||'')+'">';
+    html+='<input class="lang-inp" placeholder="رابط Icecast للصوت (اختياري)" value="'+(l.icecast_url||'')+'">';
+    html+='<input class="lang-inp" placeholder="رابط يوتيوب Unlisted للصوت (اختياري)" value="'+(l.yt_audio_url||'')+'">';
   } else {
-    inner += '<div style="font-size:.7rem;color:rgba(255,255,255,.2);padding:6px 0">⚠ اختر نوع البث أولاً</div>';
+    // مسجل أو لايف متزامن
+    html+='<div class="file-row">';
+    html+='<label class="file-lbl" onclick="this.nextElementSibling.click()">📂 ASS/SRT</label>';
+    html+='<input type="file" accept=".ass,.ssa,.srt" style="display:none" onchange="handleFile(this,\'sub\')">';
+    html+='<span class="file-status">'+(l.subtitle_url?'✅ '+l.subtitle_url.split('/').pop():'لم يُختر ملف')+'</span>';
+    html+='<input type="hidden" value="'+(l.subtitle_url||'')+'">';
+    html+='</div>';
+    html+='<div class="file-row">';
+    html+='<label class="file-lbl" onclick="this.nextElementSibling.click()">🎵 رفع صوت</label>';
+    html+='<input type="file" accept="audio/*" style="display:none" onchange="handleFile(this,\'aud\')">';
+    html+='<span class="file-status">'+(l.audio_url?'✅ '+l.audio_url.split('/').pop():'لم يُختر ملف')+'</span>';
+    html+='<input type="hidden" value="'+(l.audio_url||'')+'">';
+    html+='</div>';
+    html+='<select class="lang-inp" style="margin-bottom:0"><option value="ass">ASS</option><option value="srt">SRT</option></select>';
   }
-
-  card.innerHTML = inner;
-  return card;
+  html+='</div>';
+  return html;
 }
 
-async function uploadLiveLangFile(inp, type, idx) {
-  if (!inp.files[0]) return;
-  var file = inp.files[0];
-  var sEl = document.getElementById((type==='sub'?'lss':'las')+'-'+idx);
-  var uEl = document.getElementById((type==='sub'?'lsu':'lau')+'-'+idx);
-  sEl.textContent = '⏳ جاري الرفع...'; sEl.style.color = 'var(--gold)';
-  try {
-    var bucket = type==='sub' ? 'subtitles' : 'audio';
-    var path = 'live/' + idx + '-' + Date.now() + '.' + file.name.split('.').pop();
-    var url = await supaUpload(bucket, path, file);
-    uEl.value = url;
-    if (ST.langs[idx]) ST.langs[idx][type==='sub'?'subtitle_url':'yt_audio_url'] = url;
-    sEl.textContent = '✅ ' + file.name; sEl.style.color = '#86efac';
-  } catch(e) {
-    sEl.textContent = '❌ فشل الرفع'; sEl.style.color = '#fca5a5';
-  }
+function delLang(btn){
+  btn.closest('.lang-card').remove();
+  renumberLangs('langs-wrap');
 }
 
-function updateLangField(i, field, val) {
-  if (ST.langs[i]) ST.langs[i][field] = val;
-}
-
-function delAdminLang(i) {
-  ST.langs.splice(i, 1);
-  renderAdminLangs();
-}
-
-async function saveLiveLangs() {
-  await supa('DELETE', 'live_langs', null, 'session_id=eq.1');
-  if (!ST.langs.length) return;
-  var rows = ST.langs.map(function(l, i) {
-    // قراءة القيم من hidden inputs إن وجدت
-    var subUrl = document.getElementById('lsu-'+i);
-    var audUrl = document.getElementById('lau-'+i);
-    return {
-      session_id: 1,
-      name: l.name || '',
-      ip: l.ip||'',
-      obs_source: l.obs_source||'',
-      icecast_url: l.icecast_url||'',
-      yt_audio_url: audUrl ? audUrl.value : (l.yt_audio_url||''),
-      subtitle_url: subUrl ? subUrl.value : (l.subtitle_url||''),
-      yt_video_url: l.yt_video_url||'',
-      sort_order: i
-    };
+function renumberLangs(wrapId){
+  document.querySelectorAll('#'+wrapId+' .lang-card .lang-num').forEach(function(n,i){
+    n.textContent=i+1;
   });
-  await supa('POST', 'live_langs', rows);
 }
 
-// ══ جدول المحتوى ══
-async function loadContentTable(type) {
+// ══ رفع ملف لغة ══
+async function handleFile(inp,type){
+  if(!inp.files[0]) return;
+  var file=inp.files[0];
+  var statusEl=inp.nextElementSibling;
+  var urlEl=statusEl.nextElementSibling;
+  statusEl.textContent='⏳ جاري الرفع...';
+  statusEl.style.color='var(--gold)';
   try {
-    var data = await supa('GET', 'content', null, 'select=*&type=eq.' + type + '&order=created_at.desc');
-    var tbody = document.getElementById(type === 'video' ? 'content-tbody' : 'audio-tbody');
-    tbody.innerHTML = '';
-    (data||[]).forEach(function(item) {
-      var tr = document.createElement('tr');
-      tr.innerHTML =
-        '<td><div style="font-weight:500">' + item.title + '</div>' +
-          '<div style="font-size:.66rem;color:var(--silver)">' + (item.description||'').substring(0,50) + '</div></td>' +
-        '<td><span class="content-type type-' + type + '">' + (item.category||'—') + '</span></td>' +
-        '<td style="color:var(--silver)">' + (item.duration||'—') + '</td>' +
-        '<td><button class="btn btn-gold btn-sm" onclick="openLangsModal(' + item.id + ')">🌐 لغات</button></td>' +
-        '<td>' + (item.is_published ? '<span style="color:#86efac;font-size:.72rem">✅ منشور</span>' : '<span style="color:#fca5a5;font-size:.72rem">⏸ مخفي</span>') + '</td>' +
-        '<td><div class="content-actions">' +
-          '<button class="btn btn-gray btn-sm" onclick="openEditContent(' + item.id + ')">✏</button>' +
-          '<button class="btn btn-red btn-sm" onclick="deleteContent(' + item.id + ')">🗑</button>' +
+    var bucket=type==='sub'?'subtitles':'audio';
+    var path=(EDIT_ID||'new')+'/'+Date.now()+'.'+file.name.split('.').pop();
+    var url=await upload(bucket,path,file);
+    urlEl.value=url;
+    statusEl.textContent='✅ '+file.name;
+    statusEl.style.color='#86efac';
+  } catch(e){
+    statusEl.textContent='❌ فشل الرفع';
+    statusEl.style.color='#fca5a5';
+  }
+}
+
+// ══ بطاقات لغات المنتهية ══
+function addEndedLang(){
+  var wrap=document.getElementById('ended-langs-wrap');
+  var i=wrap.querySelectorAll('.ended-lang-card').length;
+  wrap.insertAdjacentHTML('beforeend',buildEndedLangCard(i));
+}
+
+function buildEndedLangCard(i){
+  return '<div class="ended-lang-card">'+
+    '<div class="ended-lang-title">🌐 لغة جديدة '+(i+1)+
+      '<button class="btn btn-red btn-sm" style="margin-right:auto" onclick="this.closest(\'.ended-lang-card\').remove()">حذف</button>'+
+    '</div>'+
+    '<div class="field"><label>اسم اللغة</label><input class="inp" placeholder="اسم اللغة"></div>'+
+    '<div class="file-row">'+
+      '<label class="file-lbl" onclick="this.nextElementSibling.click()">📂 ASS/SRT جديد</label>'+
+      '<input type="file" accept=".ass,.ssa,.srt" style="display:none" onchange="handleFile(this,\'sub\')">'+
+      '<span class="file-status">لم يُختر ملف</span>'+
+      '<input type="hidden" value="">'+
+    '</div>'+
+    '<div class="file-row">'+
+      '<label class="file-lbl" onclick="this.nextElementSibling.click()">🎵 صوت جديد</label>'+
+      '<input type="file" accept="audio/*" style="display:none" onchange="handleFile(this,\'aud\')">'+
+      '<span class="file-status">لم يُختر ملف</span>'+
+      '<input type="hidden" value="">'+
+    '</div>'+
+  '</div>';
+}
+
+// ══ جمع بيانات اللغات ══
+function collectLangs(){
+  var cat=document.getElementById('f-cat').value;
+  var cards=document.querySelectorAll('#langs-wrap .lang-card');
+  var langs=[];
+  cards.forEach(function(card,i){
+    var name=card.querySelector('.lang-name-inp').value;
+    if(!name) return;
+    var lang={name:name,sort_order:i};
+    if(cat==='obs'){
+      var inps=card.querySelectorAll('.lang-inp');
+      lang.ip=inps[0]?inps[0].value:'';
+      lang.obs_source=inps[1]?inps[1].value:'';
+      lang.icecast_url=inps[2]?inps[2].value:'';
+      lang.yt_audio_url=inps[3]?inps[3].value:'';
+    } else {
+      var rows=card.querySelectorAll('.file-row');
+      lang.subtitle_url=rows[0]?rows[0].querySelector('input[type=hidden]').value:'';
+      lang.audio_url=rows[1]?rows[1].querySelector('input[type=hidden]').value:'';
+      lang.subtitle_type=card.querySelector('select')?card.querySelector('select').value:'ass';
+    }
+    langs.push(lang);
+  });
+  return langs;
+}
+
+// ══ حفظ الصفحة ══
+async function savePage(){
+  var titleAr=document.getElementById('f-title-ar').value.trim();
+  if(!titleAr){toast('⚠ أدخل العنوان بالعربي','err');return;}
+
+  var type=document.getElementById('f-type').value;
+  if(type==='أخرى') type=document.getElementById('f-type-custom').value||'أخرى';
+
+  var cat=document.getElementById('f-cat').value;
+  var status=document.getElementById('f-status').value;
+
+  var body={
+    title_ar: titleAr,
+    title_en: document.getElementById('f-title-en').value,
+    yt_url: document.getElementById('f-yt-url').value,
+    broadcast_type: type,
+    location: document.getElementById('f-location').value,
+    category: cat,
+    status: status,
+    obs_port: document.getElementById('f-obs-port').value,
+    obs_pass: document.getElementById('f-obs-pass').value,
+    feedback: parseInt(document.getElementById('f-feedback').value)||0,
+    updated_at: new Date().toISOString()
+  };
+
+  // رابط جديد عند المنتهية
+  if(status==='ended'){
+    var newYt=document.getElementById('f-new-yt').value;
+    if(newYt) body.yt_url=newYt;
+  }
+
+  try {
+    var pageId;
+    if(EDIT_ID){
+      await db('PATCH','pages',body,'id=eq.'+EDIT_ID);
+      pageId=EDIT_ID;
+      toast('✅ تم التحديث','ok');
+    } else {
+      var res=await db('POST','pages',body);
+      pageId=res&&res[0]?res[0].id:null;
+      toast('✅ تمت الإضافة','ok');
+    }
+
+    if(pageId){
+      // حفظ اللغات
+      await db('DELETE','page_langs',null,'page_id=eq.'+pageId);
+      var langs=collectLangs();
+      if(langs.length){
+        langs.forEach(function(l){l.page_id=pageId;});
+        await db('POST','page_langs',langs);
+      }
+
+      // لغات إضافية عند المنتهية
+      if(status==='ended'){
+        var endedCards=document.querySelectorAll('#ended-langs-wrap .ended-lang-card');
+        var newLangs=[];
+        endedCards.forEach(function(card,i){
+          var name=card.querySelector('.inp');
+          var rows=card.querySelectorAll('.file-row');
+          newLangs.push({
+            page_id:pageId,
+            name:name?name.value:'',
+            subtitle_url:rows[0]?rows[0].querySelector('input[type=hidden]').value:'',
+            audio_url:rows[1]?rows[1].querySelector('input[type=hidden]').value:'',
+            subtitle_type:'ass',
+            sort_order:langs.length+i
+          });
+        });
+        if(newLangs.length) await db('POST','page_langs',newLangs);
+      }
+    }
+
+    loadPagesTable();
+    loadDashboard();
+    setTimeout(function(){showPage('pages');},800);
+  } catch(e){toast('❌ '+e.message,'err');}
+}
+
+// ══ جدول الصفحات ══
+async function loadPagesTable(){
+  try {
+    var data=await db('GET','pages',null,'select=*&order=created_at.desc');
+    var tbody=document.getElementById('pages-tbody');
+    tbody.innerHTML='';
+    (data||[]).forEach(function(p){
+      var statusMap={upcoming:'badge-upcoming',live:'badge-live',ended:'badge-ended',recorded:'badge-recorded'};
+      var statusLbl={upcoming:'قادمة',live:'جارية',ended:'منتهية',recorded:'مسجلة'};
+      var catMap={recorded:'cat-recorded',sync:'cat-sync',obs:'cat-obs'};
+      var catLbl={recorded:'مسجل',sync:'لايف متزامن',obs:'لايف OBS'};
+      var tr=document.createElement('tr');
+      tr.innerHTML=
+        '<td><div style="font-weight:500">'+(p.title_ar||'—')+'</div>'+
+          '<div style="font-size:.64rem;color:var(--silver)">'+(p.title_en||'')+'</div></td>'+
+        '<td><span style="font-size:.7rem;color:var(--silver)">'+(p.broadcast_type||'—')+'</span></td>'+
+        '<td><span style="font-size:.7rem;color:var(--silver)">'+(p.location||'—')+'</span></td>'+
+        '<td><span class="cat-badge '+(catMap[p.category]||'')+'">'+(catLbl[p.category]||p.category||'—')+'</span></td>'+
+        '<td><span class="status-badge '+(statusMap[p.status]||'')+'">'+(statusLbl[p.status]||p.status||'—')+'</span></td>'+
+        '<td><div style="display:flex;gap:5px">'+
+          '<button class="btn btn-gold btn-sm" onclick="editPage('+p.id+')">✏</button>'+
+          '<button class="btn btn-gray btn-sm" onclick="window.open(\'watch.html?page='+p.id+'\')">👁</button>'+
+          '<button class="btn btn-red btn-sm" onclick="deletePage('+p.id+')">🗑</button>'+
         '</div></td>';
       tbody.appendChild(tr);
     });
-  } catch(e) { console.error(e); }
+  } catch(e){console.error(e);}
 }
 
-// ══ modal إضافة/تعديل محتوى ══
-function openAddContent(type) {
-  ST.editContentId = null;
-  document.getElementById('modal-title-txt').textContent = type === 'video' ? 'إضافة فيديو' : 'إضافة صوتي';
-  document.getElementById('modal-body').innerHTML = buildContentForm(type, {});
-  document.getElementById('content-modal').classList.add('open');
-}
-
-async function openEditContent(id) {
+// ══ تعديل صفحة ══
+async function editPage(id){
   try {
-    var data = await supa('GET', 'content', null, 'select=*&id=eq.' + id);
-    if (!data||!data[0]) return;
-    var item = data[0];
-    ST.editContentId = id;
-    document.getElementById('modal-title-txt').textContent = 'تعديل: ' + item.title;
-    document.getElementById('modal-body').innerHTML = buildContentForm(item.type, item);
-    document.getElementById('content-modal').classList.add('open');
-  } catch(e) { toast('❌ ' + e.message, 'err'); }
-}
+    var data=await db('GET','pages',null,'select=*&id=eq.'+id+'&limit=1');
+    if(!data||!data[0]) return;
+    var p=data[0];
+    EDIT_ID=id;
+    document.getElementById('create-page-title').textContent='تعديل: '+p.title_ar;
+    document.getElementById('f-title-ar').value=p.title_ar||'';
+    document.getElementById('f-title-en').value=p.title_en||'';
+    document.getElementById('f-yt-url').value=p.yt_url||'';
+    document.getElementById('f-location').value=p.location||'مكة';
+    document.getElementById('f-obs-port').value=p.obs_port||'4455';
+    document.getElementById('f-obs-pass').value=p.obs_pass||'';
+    var fb=document.getElementById('f-feedback');
+    if(fb){fb.value=p.feedback||0;document.getElementById('f-feedback-val').textContent=(p.feedback||0)+'%';}
 
-function buildContentForm(type, item) {
-  return '<div class="field"><label>العنوان</label><input class="inp" id="cf-title" value="' + (item.title||'') + '" placeholder="عنوان المحتوى"></div>' +
-    '<div class="field"><label>الوصف</label><input class="inp" id="cf-desc" value="' + (item.description||'') + '" placeholder="وصف مختصر"></div>' +
-    '<div class="inp-row">' +
-      '<div class="field"><label>الفئة</label><input class="inp" id="cf-cat" value="' + (item.category||'') + '" placeholder="خطبة / درس / تفسير"></div>' +
-      '<div class="field"><label>المدة</label><input class="inp" id="cf-dur" value="' + (item.duration||'') + '" placeholder="45:12"></div>' +
-    '</div>' +
-    (type === 'video' ? '<div class="field"><label>معرف يوتيوب (ID)</label><input class="inp" id="cf-ytid" value="' + (item.yt_id||'') + '" placeholder="مثال: dQw4w9WgXcQ"></div>' : '') +
-    (type === 'audio' ? '<div class="field"><label>رابط الصوت</label><input class="inp" id="cf-audio" value="' + (item.audio_url||'') + '" placeholder="رابط ملف MP3"></div>' : '') +
-    '<div class="field"><label>الحالة</label><select class="inp" id="cf-pub"><option value="true" ' + (item.is_published!==false?'selected':'') + '>منشور</option><option value="false" ' + (item.is_published===false?'selected':'') + '>مخفي</option></select></div>' +
-    '<input type="hidden" id="cf-type" value="' + type + '">' +
-    '<div style="display:flex;gap:8px;margin-top:16px">' +
-      '<button class="btn btn-green" style="flex:1" onclick="saveContent()">💾 حفظ</button>' +
-      '<button class="btn btn-gray" onclick="closeModal()">إلغاء</button>' +
-    '</div>';
-}
-
-async function saveContent() {
-  var type = document.getElementById('cf-type').value;
-  var body = {
-    title: document.getElementById('cf-title').value,
-    description: document.getElementById('cf-desc').value,
-    category: document.getElementById('cf-cat').value,
-    duration: document.getElementById('cf-dur').value,
-    is_published: document.getElementById('cf-pub').value === 'true',
-    type: type
-  };
-  var ytEl = document.getElementById('cf-ytid');
-  if (ytEl) body.yt_id = ytEl.value;
-  var audEl = document.getElementById('cf-audio');
-  if (audEl) body.audio_url = audEl.value;
-
-  try {
-    if (ST.editContentId) {
-      await supa('PATCH', 'content', body, 'id=eq.' + ST.editContentId);
-      toast('✅ تم التحديث', 'ok');
+    // نوع البث
+    var typeEl=document.getElementById('f-type');
+    var validTypes=['خطبة','درس','قرآن','ندوة'];
+    if(validTypes.includes(p.broadcast_type)){
+      typeEl.value=p.broadcast_type;
     } else {
-      await supa('POST', 'content', body);
-      toast('✅ تمت الإضافة', 'ok');
+      typeEl.value='أخرى';
+      document.getElementById('f-type-custom').value=p.broadcast_type||'';
+      document.getElementById('f-type-custom-wrap').style.display='block';
     }
-    closeModal();
-    loadContentTable(type);
-    if (type === 'audio') loadContentTable('audio');
-    loadDashboard();
-  } catch(e) { toast('❌ ' + e.message, 'err'); }
-}
 
-async function deleteContent(id) {
-  if (!confirm('هل تريد حذف هذا المحتوى؟')) return;
-  try {
-    await supa('DELETE', 'content', null, 'id=eq.' + id);
-    toast('🗑 تم الحذف', 'ok');
-    loadContentTable('video');
-    loadContentTable('audio');
-    loadDashboard();
-  } catch(e) { toast('❌ ' + e.message, 'err'); }
-}
+    setCat(p.category||'recorded', document.querySelector('[data-cat="'+(p.category||'recorded')+'"]'));
+    setStatus(p.status||'upcoming', document.querySelector('[data-status="'+(p.status||'upcoming')+'"]'));
 
-// ══ لغات المحتوى ══
-async function openLangsModal(contentId) {
-  ST.editLangsContentId = contentId;
-  var data = await supa('GET', 'content_langs', null, 'select=*&content_id=eq.' + contentId + '&order=sort_order');
-  var langs = data || [];
-  var html = '<div id="clm-langs">';
-  langs.forEach(function(l, i) { html += buildContentLangRow(l, i); });
-  html += '</div>';
-  html += '<button class="add-lang-btn" onclick="addContentLang()">+ إضافة لغة</button>';
-  html += '<div style="margin-top:14px;display:flex;gap:8px">' +
-    '<button class="btn btn-green" style="flex:1" onclick="saveContentLangs()">💾 حفظ</button>' +
-    '<button class="btn btn-gray" onclick="closeLangsModal()">إلغاء</button>' +
-    '</div>';
-  document.getElementById('langs-modal-body').innerHTML = html;
-  document.getElementById('langs-modal').classList.add('open');
-}
-
-var CLM_LANGS = [];
-var CLM_COUNTER = 0;
-
-function buildContentLangRow(l, i) {
-  return '<div class="lang-card" id="clm-' + i + '" style="margin-bottom:8px">' +
-    '<div class="lang-card-hdr">' +
-      '<div class="lang-num">' + (i+1) + '</div>' +
-      '<input class="lang-name-inp" placeholder="اسم اللغة" value="' + (l.name||'') + '">' +
-      '<button class="lang-del" onclick="this.closest(\'.lang-card\').remove()">✕</button>' +
-    '</div>' +
-    '<div style="display:flex;gap:8px;margin-bottom:6px">' +
-      '<label class="file-lbl" style="font-size:.7rem;padding:5px 10px;cursor:pointer" onclick="document.getElementById(\'sf-'+i+'\').click()">📂 ASS/SRT</label>' +
-      '<span class="upload-status" id="ss-' + i + '">' + (l.subtitle_url?'✅ مرفوع':'لم يُختر') + '</span>' +
-      '<input type="file" id="sf-' + i + '" accept=".ass,.ssa,.srt" style="display:none" onchange="uploadLF(this,\'sub\',' + i + ')">' +
-      '<input type="hidden" id="su-' + i + '" value="' + (l.subtitle_url||'') + '">' +
-    '</div>' +
-    '<div style="display:flex;gap:8px;margin-bottom:6px">' +
-      '<label class="file-lbl" style="font-size:.7rem;padding:5px 10px;cursor:pointer" onclick="document.getElementById(\'af-'+i+'\').click()">🎵 صوت</label>' +
-      '<span class="upload-status" id="as-' + i + '">' + (l.audio_url?'✅ مرفوع':'لم يُختر') + '</span>' +
-      '<input type="file" id="af-' + i + '" accept="audio/*" style="display:none" onchange="uploadLF(this,\'aud\',' + i + ')">' +
-      '<input type="hidden" id="au-' + i + '" value="' + (l.audio_url||'') + '">' +
-    '</div>' +
-    '<select class="lang-inp" id="st-' + i + '" style="margin-bottom:0">' +
-      '<option value="ass"' + (l.subtitle_type!=='srt'?' selected':'') + '>ASS</option>' +
-      '<option value="srt"' + (l.subtitle_type==='srt'?' selected':'') + '>SRT</option>' +
-    '</select>' +
-    '</div>';
-}
-
-async function uploadLF(inp, type, idx) {
-  if (!inp.files[0]) return;
-  var file = inp.files[0];
-  var sEl = document.getElementById((type==='sub'?'ss':'as')+'-'+idx);
-  var uEl = document.getElementById((type==='sub'?'su':'au')+'-'+idx);
-  sEl.textContent = '⏳ جاري الرفع...'; sEl.style.color='var(--gold)';
-  try {
-    var bucket = type==='sub' ? 'subtitles' : 'audio';
-    var path = ST.editLangsContentId+'/'+idx+'-'+Date.now()+'.'+file.name.split('.').pop();
-    var url = await supaUpload(bucket, path, file);
-    uEl.value = url;
-    sEl.textContent = '✅ '+file.name; sEl.style.color='#86efac';
-  } catch(e) {
-    sEl.textContent = '❌ فشل'; sEl.style.color='#fca5a5';
-  }
-}
-
-function addContentLang() {
-  var container = document.getElementById('clm-langs');
-  var i = container.children.length;
-  container.insertAdjacentHTML('beforeend', buildContentLangRow({}, i));
-}
-
-async function saveContentLangs() {
-  var cards = document.querySelectorAll('#clm-langs .lang-card');
-  var rows = [];
-  cards.forEach(function(card, i) {
-    var name = card.querySelector('.lang-name-inp');
-    var su = card.querySelector('[id^="su-"]');
-    var au = card.querySelector('[id^="au-"]');
-    var st = card.querySelector('[id^="st-"]');
-    rows.push({
-      content_id: ST.editLangsContentId,
-      name: name ? name.value : '',
-      subtitle_url: su ? su.value : '',
-      audio_url: au ? au.value : '',
-      subtitle_type: st ? st.value : 'ass',
-      sort_order: i
+    // تحميل اللغات
+    var langs=await db('GET','page_langs',null,'select=*&page_id=eq.'+id+'&order=sort_order');
+    var wrap=document.getElementById('langs-wrap');
+    wrap.innerHTML='';
+    (langs||[]).forEach(function(l,i){
+      wrap.insertAdjacentHTML('beforeend',buildLangCard(l,i,p.category||'recorded'));
     });
-  });
+    if(!wrap.children.length){addLang();addLang();}
+
+    showPage('create');
+  } catch(e){toast('❌ '+e.message,'err');}
+}
+
+// ══ حذف صفحة ══
+async function deletePage(id){
+  if(!confirm('هل تريد حذف هذه الصفحة؟')) return;
   try {
-    await supa('DELETE', 'content_langs', null, 'content_id=eq.'+ST.editLangsContentId);
-    if (rows.length) await supa('POST', 'content_langs', rows);
-    toast('✅ تم حفظ اللغات', 'ok');
-    closeLangsModal();
-  } catch(e) { toast('❌ '+e.message, 'err'); }
+    await db('DELETE','page_langs',null,'page_id=eq.'+id);
+    await db('DELETE','pages',null,'id=eq.'+id);
+    toast('🗑 تم الحذف','ok');
+    loadPagesTable();
+    loadDashboard();
+  } catch(e){toast('❌ '+e.message,'err');}
 }
 
-// ══ Realtime ══
-function startRealtimeLive() {
-  var url = SUPA_URL.replace('https://', 'wss://') + '/realtime/v1/websocket?apikey=' + SUPA_KEY + '&vsn=1.0.0';
-  var ws = new WebSocket(url);
-  ws.onopen = function() {
-    ws.send(JSON.stringify({ topic: 'realtime:public:live_session', event: 'phx_join', payload: {}, ref: '1' }));
+// ══ DASHBOARD ══
+async function loadDashboard(){
+  try {
+    var data=await db('GET','pages',null,'select=id,status');
+    var all=data||[];
+    document.getElementById('st-all').textContent=all.length;
+    document.getElementById('st-live').textContent=all.filter(function(x){return x.status==='live';}).length;
+    document.getElementById('st-upcoming').textContent=all.filter(function(x){return x.status==='upcoming';}).length;
+    document.getElementById('st-ended').textContent=all.filter(function(x){return x.status==='ended'||x.status==='recorded';}).length;
+
+    var live=all.filter(function(x){return x.status==='live';});
+    if(live.length){
+      document.getElementById('live-dot').className='live-dot on';
+      document.getElementById('live-status-txt').textContent='بث جارٍ';
+      var liveData=await db('GET','pages',null,'select=title_ar,category,location&status=eq.live&limit=1');
+      if(liveData&&liveData[0]){
+        var d=liveData[0];
+        document.getElementById('dash-live-info').innerHTML=
+          '<span style="color:var(--gold)">'+(d.title_ar||'—')+'</span> · '+
+          (d.location||'')+ ' · '+(d.category||'');
+      }
+    } else {
+      document.getElementById('live-dot').className='live-dot';
+      document.getElementById('live-status-txt').textContent='لا يوجد بث';
+      document.getElementById('dash-live-info').textContent='لا يوجد بث جارٍ';
+    }
+  } catch(e){}
+}
+
+// ══ SETTINGS ══
+async function loadSettings(){
+  try {
+    var data=await db('GET','settings',null,'select=*&limit=1');
+    if(!data||!data[0]) return;
+    var s=data[0];
+    ADMIN_PASS=s.admin_password||'admin123';
+    document.getElementById('sb-name').textContent=s.site_name||'الإثراء الديني';
+    document.getElementById('set-name-ar').value=s.site_name||'';
+    document.getElementById('set-name-en').value=s.site_name_en||'';
+    document.getElementById('set-icon').value=s.logo_icon||'🕌';
+    document.getElementById('set-green').value=s.primary_color||'#1a472a';
+    document.getElementById('set-gold').value=s.gold_color||'#c9a84c';
+    if(s.primary_color) document.documentElement.style.setProperty('--green',s.primary_color);
+    if(s.gold_color) document.documentElement.style.setProperty('--gold',s.gold_color);
+  } catch(e){}
+}
+
+async function saveSettings(){
+  var body={
+    site_name:document.getElementById('set-name-ar').value,
+    site_name_en:document.getElementById('set-name-en').value,
+    logo_icon:document.getElementById('set-icon').value,
+    primary_color:document.getElementById('set-green').value,
+    gold_color:document.getElementById('set-gold').value,
+    updated_at:new Date().toISOString()
   };
-  ws.onmessage = function(e) {
-    var msg = JSON.parse(e.data);
-    if (msg.event === 'UPDATE' || msg.event === 'INSERT') {
-      var s = msg.payload && msg.payload.record;
-      if (s) updateLiveDash(s);
+  var np=document.getElementById('set-pass').value;
+  if(np) body.admin_password=np;
+  try {
+    await db('PATCH','settings',body,'id=eq.1');
+    toast('✅ تم حفظ الإعدادات','ok');
+    document.getElementById('sb-name').textContent=body.site_name;
+  } catch(e){toast('❌ '+e.message,'err');}
+}
+
+// ══ REALTIME ══
+function startRealtime(){
+  var url=SUPA_URL.replace('https://','wss://')+'/realtime/v1/websocket?apikey='+SUPA_KEY+'&vsn=1.0.0';
+  var ws=new WebSocket(url);
+  ws.onopen=function(){
+    ws.send(JSON.stringify({topic:'realtime:public:pages',event:'phx_join',payload:{},ref:'1'}));
+  };
+  ws.onmessage=function(e){
+    var msg=JSON.parse(e.data);
+    if(msg.event==='UPDATE'||msg.event==='INSERT'||msg.event==='DELETE'){
+      loadDashboard(); loadPagesTable();
     }
   };
-  ws.onclose = function() { setTimeout(startRealtimeLive, 5000); };
+  ws.onclose=function(){setTimeout(startRealtime,5000);};
 }
 
-// ══ navigation ══
-function showPage(name) {
-  document.querySelectorAll('.page-content').forEach(function(p) { p.classList.remove('active'); });
-  document.getElementById('page-' + name).classList.add('active');
-  document.querySelectorAll('.sb-item').forEach(function(b) { b.classList.remove('active'); });
-  event.currentTarget.classList.add('active');
+// ══ TOAST ══
+var _tt;
+function toast(msg,type){
+  var el=document.getElementById('toast');
+  el.textContent=msg; el.className='toast show '+(type||'');
+  clearTimeout(_tt); _tt=setTimeout(function(){el.classList.remove('show');},3000);
 }
 
-function closeModal() { document.getElementById('content-modal').classList.remove('open'); }
-function closeLangsModal() { document.getElementById('langs-modal').classList.remove('open'); }
-
-// ══ toast ══
-var toastTimer;
-function toast(msg, type) {
-  var el = document.getElementById('toast');
-  el.textContent = msg; el.className = 'toast show ' + (type||'');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(function() { el.classList.remove('show'); }, 3000);
-}
-
-// ══ تهيئة أولية ══
-window.addEventListener('load', function() {
-  loadSettings().then(function() {
-    var saved = sessionStorage.getItem('admin_auth');
-    if (saved === 'ok') {
-      document.getElementById('login-screen').classList.add('hide');
-      initAdmin();
-    }
-  });
-  document.getElementById('pass-inp').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') doLogin();
-  });
-});
-
-function doLogin() {
-  var pass = document.getElementById('pass-inp').value;
-  if (pass === ADMIN_PASS || pass === (SETTINGS.admin_password||'admin123')) {
-    sessionStorage.setItem('admin_auth', 'ok');
+// ══ START ══
+window.addEventListener('load',function(){
+  if(sessionStorage.getItem('admin_ok')==='1'){
     document.getElementById('login-screen').classList.add('hide');
     initAdmin();
-  } else {
-    document.getElementById('login-err').textContent = 'كلمة المرور غير صحيحة';
-    document.getElementById('pass-inp').value = '';
   }
-}
+  document.getElementById('pass-inp').addEventListener('keydown',function(e){
+    if(e.key==='Enter') doLogin();
+  });
+});
 </script>
 </body>
 </html>
