@@ -430,16 +430,6 @@ select.inp option{background:var(--bg3);}
         </div>
 
         <!-- ملفات محدّثة عند المنتهية -->
-        <div class="card" id="sync-ctrl-card" style="display:none">
-          <div class="card-title">⚡ التحكم بالتزامن</div>
-          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-            <button class="btn btn-green" id="sync-start-btn" onclick="startSync()">▶ ابدأ التزامن</button>
-            <button class="btn btn-red" id="sync-stop-btn" style="display:none" onclick="stopSync()">⏹ أوقف التزامن</button>
-            <span id="sync-timer" style="font-size:.85rem;color:var(--gold);font-family:monospace"></span>
-          </div>
-          <div style="font-size:.65rem;color:rgba(255,255,255,.2);margin-top:8px">عند الضغط تبدأ الترجمة تمشي مع الوقت الحقيقي عند المشاهد</div>
-        </div>
-
         <div class="card" id="ended-update-card" style="display:none">
           <div class="card-title">🔄 تحديث ملفات (اختياري)</div>
           <div style="font-size:.72rem;color:rgba(255,255,255,.3);margin-bottom:12px">
@@ -592,11 +582,6 @@ function setCat(cat,el){
   document.querySelectorAll('.type-chip').forEach(function(c){c.classList.remove('active');});
   if(el) el.classList.add('active');
   document.getElementById('obs-settings-wrap').style.display=cat==='obs'?'block':'none';
-  var syncCard=document.getElementById('sync-ctrl-card');
-  if(syncCard){
-    var st=document.getElementById('f-status').value;
-    syncCard.style.display=(cat==='sync'&&st==='live'&&EDIT_ID)?'block':'none';
-  }
   // أعد رسم بطاقات اللغات الموجودة بالنوع الجديد
   var wrap=document.getElementById('langs-wrap');
   var count=wrap.querySelectorAll('.lang-card').length||2;
@@ -616,11 +601,6 @@ function setStatus(status,el){
   };
   document.getElementById('status-hint').textContent=hints[status]||'';
   document.getElementById('ended-update-card').style.display=status==='ended'?'block':'none';
-  var syncCard=document.getElementById('sync-ctrl-card');
-  if(syncCard){
-    var cat=document.getElementById('f-cat').value;
-    syncCard.style.display=(cat==='sync'&&status==='live'&&EDIT_ID)?'block':'none';
-  }
 }
 
 // ══ بطاقات اللغات ══
@@ -856,6 +836,7 @@ async function loadPagesTable(){
         '<td><div style="display:flex;gap:5px">'+
           '<button class="btn btn-gold btn-sm" onclick="editPage('+p.id+')">✏</button>'+
           '<button class="btn btn-gray btn-sm" onclick="window.open(\'watch.html?page='+p.id+'\')">👁</button>'+
+          (p.category==='sync'&&p.status==='live' ? '<button class="btn btn-green btn-sm" onclick="quickSync('+p.id+',this)" title="التزامن">⚡</button>' : '')+
           '<button class="btn btn-red btn-sm" onclick="deletePage('+p.id+')">🗑</button>'+
         '</div></td>';
       tbody.appendChild(tr);
@@ -1002,30 +983,40 @@ function startRealtime(){
 
 // ══ SYNC ══
 var _syncInterval = null;
-async function startSync() {
-  if (!EDIT_ID) return;
+var _syncPageId = null;
+
+async function quickSync(pageId, btn) {
+  var row = btn.closest('tr');
+  var isRunning = btn.classList.contains('running');
   try {
-    await db('PATCH','pages',{sync_start:new Date().toISOString()},'id=eq.'+EDIT_ID);
-    document.getElementById('sync-start-btn').style.display='none';
-    document.getElementById('sync-stop-btn').style.display='';
-    var t0=Date.now();
-    _syncInterval=setInterval(function(){
-      var s=Math.floor((Date.now()-t0)/1000),m=Math.floor(s/60);s=s%60;
-      document.getElementById('sync-timer').textContent=m+':'+(s<10?'0':'')+s;
-    },1000);
-    toast('▶ بدأ التزامن','ok');
+    if (!isRunning) {
+      await db('PATCH','pages',{sync_start:new Date().toISOString()},'id=eq.'+pageId);
+      btn.classList.add('running');
+      btn.title = 'أوقف التزامن';
+      btn.textContent = '⏹';
+      btn.className = btn.className.replace('btn-green','btn-red');
+      _syncPageId = pageId;
+      clearInterval(_syncInterval);
+      var t0 = Date.now();
+      _syncInterval = setInterval(function(){
+        if (!document.body.contains(btn)) { clearInterval(_syncInterval); return; }
+        var s=Math.floor((Date.now()-t0)/1000),m=Math.floor(s/60);s=s%60;
+        btn.textContent = '⏹ '+m+':'+(s<10?'0':'')+s;
+      },1000);
+      toast('▶ بدأ التزامن','ok');
+    } else {
+      await db('PATCH','pages',{sync_start:null},'id=eq.'+pageId);
+      btn.classList.remove('running');
+      btn.textContent = '⚡';
+      btn.title = 'التزامن';
+      btn.className = btn.className.replace('btn-red','btn-green');
+      clearInterval(_syncInterval);
+      _syncPageId = null;
+      toast('⏹ توقف التزامن','ok');
+    }
   } catch(e){toast('❌ '+e.message,'err');}
 }
-async function stopSync() {
-  if (!EDIT_ID) return;
-  try {
-    await db('PATCH','pages',{sync_start:null},'id=eq.'+EDIT_ID);
-    document.getElementById('sync-start-btn').style.display='';
-    document.getElementById('sync-stop-btn').style.display='none';
-    clearInterval(_syncInterval);
-    document.getElementById('sync-timer').textContent='';
-    toast('⏹ توقف التزامن','ok');
-  } catch(e){toast('❌ '+e.message,'err');}
+}
 }
 
 // ══ TOAST ══

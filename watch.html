@@ -380,9 +380,24 @@ async function loadPage(id) {
     var isLive = page.status === 'live';
     document.getElementById('live-badge').style.display = isLive ? 'flex' : 'none';
 
-    if (ST.mode === 'sync' || ST.mode === 'recorded') await loadSubtitleFiles();
+    if (ST.mode === 'sync' || ST.mode === 'recorded') {
+      await loadSubtitleFiles();
+      // تحميل ملفات الصوت (audio_url)
+      ST.langs.forEach(function(l, i) {
+        if (l.audio_url) {
+          var a = new Audio(l.audio_url);
+          a.volume = 0;
+          a.preload = 'auto';
+          ST.audioEls[i] = a;
+        } else if (l.yt_audio_url) {
+          loadYTAudio(i, l.yt_audio_url);
+        } else if (l.icecast_url) {
+          loadIcecast(i, l.icecast_url);
+        }
+      });
+    }
+    // إذا sync وعنده sync_start
     if (ST.mode === 'sync' && page.sync_start) {
-      // syncStart = وقت بدء التزامن بالـ ms
       ST.syncStart = new Date(page.sync_start).getTime();
     }
     buildLangPanel();
@@ -647,12 +662,10 @@ function startLoop() {
       var t = ytPlayer.getCurrentTime();
       updateSeek(t);
       if (ST.activeSub >= 0 && ST.mode !== 'obs') {
-        if (ST.mode === 'sync') {
-          if (ST.syncStart) {
-            var elapsed = (Date.now() - ST.syncStart) / 1000;
-            drawSubFromFile(elapsed);
-          }
-        } else {
+        if (ST.mode === 'sync' && ST.syncStart) {
+          var elapsed = (Date.now() - ST.syncStart) / 1000;
+          drawSubFromFile(elapsed);
+        } else if (ST.mode !== 'sync') {
           drawSubFromFile(t);
         }
       }
@@ -856,10 +869,15 @@ function startRealtimePage(pageId) {
       // تحديث sync_start
       if (typeof s.sync_start !== 'undefined') {
         if (s.sync_start && ST.mode === 'sync') {
-          ST.syncStart = new Date(s.sync_start).getTime();
+          var off = Date.now() - new Date(s.sync_start).getTime();
+          ST.syncStart = Date.now() - off;
         } else {
           ST.syncStart = null;
         }
+      }
+      // تحديث sync_start
+      if (typeof s.sync_start !== 'undefined') {
+        ST.syncStart = s.sync_start ? new Date(s.sync_start).getTime() : null;
       }
       // تحديث feedback
       if (s.feedback !== undefined) {
