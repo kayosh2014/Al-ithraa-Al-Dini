@@ -263,6 +263,8 @@ async function supa(table, params) {
 var ST = {
   mode: 'none',       // none | sync | obs
   syncStart: null,    // timestamp بدء التزامن
+  subDelay: 0,        // تأخير الترجمة النصية (ثواني)
+  audioDelay: 0,      // تأخير الترجمة الصوتية (ثواني)
   session: null,
   langs: [],          // لغات البث
   playing: false,
@@ -318,7 +320,11 @@ function createYTPlayer(videoId) {
           document.getElementById('yt-frame').style.opacity='1';
           if (ST.activeAudio >= 0 && (ST.mode !== 'sync' || ST.syncStart)) {
             var _pa=ST.audioEls[ST.activeAudio];
-            if (_pa) { if(typeof _pa.playVideo==='function') _pa.playVideo(); else _pa.play().catch(function(){}); }
+            if (_pa) {
+              var _pat=Math.max(0,(ytPlayer&&ytPlayer.getCurrentTime?ytPlayer.getCurrentTime():0)-ST.audioDelay);
+              if(typeof _pa.seekTo==='function'){_pa.seekTo(_pat,true);_pa.playVideo();}
+              else{_pa.currentTime=_pat;_pa.play().catch(function(){});}
+            }
           }
         }
         if (e.data === YT.PlayerState.PAUSED) {
@@ -368,6 +374,8 @@ async function loadPage(id) {
     ST.langs = langs || [];
     ST.session = page;
     ST.feedback = page.feedback || 0;
+    ST.subDelay   = parseFloat(page.sub_delay   || 0);
+    ST.audioDelay = parseFloat(page.audio_delay || 0);
 
     // تحديد الوضع
     if (page.status === 'upcoming') {
@@ -412,7 +420,7 @@ async function loadPage(id) {
       if (ytReady) createYTPlayer(ytId);
       else ST._pendingId = ytId;
     }
-    if (ST.mode === 'obs') startObsRealtime(id);
+    if (ST.mode === 'obs') connectAllOBS();
 
     hideLoader();
     if (isLive) startRealtimePage(id);
@@ -511,65 +519,6 @@ function buildLangPanel() {
 }
 
 // ══ OBS WebSocket ══
-function startObsRealtime(pageId) {
-  var url = SUPA_URL.replace('https','wss') + '/realtime/v1/websocket?apikey=' + SUPA_KEY + '&vsn=1.0.0';
-  var ws = new WebSocket(url);
-
-  ws.onopen = function() {
-    // اشترك في تغييرات page_langs
-    ws.send(JSON.stringify({
-      topic: 'realtime:public:page_langs:page_id=eq.' + pageId,
-      event: 'phx_join',
-      payload: {
-        config: {
-          postgres_changes: [{
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'page_langs',
-            filter: 'page_id=eq.' + pageId
-          }]
-        }
-      },
-      ref: '1'
-    }));
-    console.log('[OBS Realtime] متصل بـ Supabase');
-    // heartbeat كل 25 ثانية
-    setInterval(function() {
-      if (ws.readyState === 1)
-        ws.send(JSON.stringify({ topic:'phoenix', event:'heartbeat', payload:{}, ref:'hb' }));
-    }, 25000);
-  };
-
-  ws.onmessage = function(e) {
-    var msg = JSON.parse(e.data);
-    // تغيير في page_langs
-    if (msg.event === 'postgres_changes') {
-      var record = msg.payload && msg.payload.data && msg.payload.data.record;
-      if (!record) return;
-      // ابحث عن idx من langs
-      var idx = -1;
-      for (var i = 0; i < ST.langs.length; i++) {
-        if (ST.langs[i].id === record.id) { idx = i; break; }
-      }
-      if (idx < 0) return;
-      if (record.obs_text !== undefined) {
-        ST.obsTexts[idx] = record.obs_text || '';
-        if (ST.activeSub === idx) drawSubText(ST.obsTexts[idx]);
-        console.log('[OBS] نص جديد:', record.obs_text);
-      }
-    }
-  };
-
-  ws.onclose = function() {
-    console.log('[OBS Realtime] انقطع — إعادة بعد 4 ثوان');
-    setTimeout(function() { startObsRealtime(pageId); }, 4000);
-  };
-
-  ws.onerror = function(e) {
-    console.error('[OBS Realtime] خطأ:', e);
-  };
-}
-
 function connectAllOBS() {
   var port = ST.session.obs_port || ST.session.obsPort || '4455';
   var pass = ST.session.obs_pass || ST.session.obsPass || '';
@@ -685,8 +634,9 @@ function setAudio(idx) {
   } else {
     var el = ST.audioEls[idx];
     if (el) {
-      if (typeof el.playVideo === 'function') { el.setVolume(ST.vol); el.playVideo(); }
-      else { el.volume = ST.vol/100; el.play().catch(function(){}); }
+      var _at = Math.max(0, (ytPlayer&&ytPlayer.getCurrentTime?ytPlayer.getCurrentTime():0) - ST.audioDelay);
+      if (typeof el.seekTo === 'function') { el.seekTo(_at,true); el.setVolume(ST.vol); el.playVideo(); }
+      else { el.currentTime=_at; el.volume=ST.vol/100; if(ST.playing) el.play().catch(function(){}); }
     }
     // feedback — الصوت الأصلي في الخلفية
     if (ytPlayer) {
@@ -731,7 +681,8 @@ function startLoop() {
           var elapsed = (Date.now() - ST.syncStart) / 1000;
           drawSubFromFile(elapsed);
         } else if (ST.mode !== 'sync') {
-          drawSubFromFile(t);
+          var _st = Math.max(0, t - ST.subDelay);
+          drawSubFromFile(_st);
         }
       }
     }
