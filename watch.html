@@ -923,7 +923,10 @@ function startRealtimePage(pageId) {
     } else if (msg.payload && msg.payload.data && msg.payload.data.type === 'UPDATE') {
       s = msg.payload.data.record;
     }
-    if (!s || String(s.id) !== String(pageId)) return;
+    console.log('[RT check] s.id:', s && s.id, 'pageId:', pageId, 'match:', s && String(s.id) === String(pageId));
+    if (!s) { console.log('[RT] s is null, skipping'); return; }
+    console.log('[RT] s.id='+s.id+' pageId='+pageId+' sync_start='+s.sync_start+' mode='+ST.mode);
+    if (String(s.id) !== String(pageId)) { console.log('[RT] id mismatch'); return; }
     // تغيير الحالة
     if (s.status === 'upcoming') {
       showNoLive('يبدأ البث قريباً', s.title_ar || '');
