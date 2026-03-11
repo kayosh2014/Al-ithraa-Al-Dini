@@ -521,68 +521,37 @@ function buildLangPanel() {
   document.getElementById('tab-audio').style.display = hasAudio ? '' : 'none';
 }
 
-// ══ OBS WebSocket ══
+// ══ OBS — يقرأ obs_text من Supabase Realtime (السكربت Python هو من يكتب) ══
 function connectAllOBS() {
-  var port = ST.session.obs_port || ST.session.obsPort || '4455';
-  var pass = ST.session.obs_pass || ST.session.obsPass || '';
   ST.langs.forEach(function(l, i) {
-    if (!l.ip) return;
-    connectOBS(i, l.ip, port, pass, l.obs_source);
     if (l.yt_audio_url) loadYTAudio(i, l.yt_audio_url);
     else if (l.icecast_url) loadIcecast(i, l.icecast_url);
   });
+  startObsRealtime();
 }
 
-function connectOBS(idx, ip, port, pass, source) {
-  var url = 'ws://' + ip + ':' + port;
-  var ws;
-  try { ws = new WebSocket(url); } catch(e) { return; }
-  ST.obsWs[idx] = ws;
-  var reqId = 0;
-
+function startObsRealtime() {
+  var url = SUPA_URL.replace('https://','wss://') + '/realtime/v1/websocket?apikey=' + SUPA_KEY + '&vsn=1.0.0';
+  var ws = new WebSocket(url);
   ws.onopen = function() {
-    ws.send(JSON.stringify({ op:1, d:{ rpcVersion:1 } }));
-    updateObsDot(idx, true);
+    ws.send(JSON.stringify({ topic:'realtime:public:page_langs', event:'phx_join', payload:{}, ref:'obs1' }));
   };
   ws.onmessage = function(e) {
     var msg = JSON.parse(e.data);
-    if (msg.op === 2) {
-      // hello — أرسل identify
-      ws.send(JSON.stringify({ op:3, d:{ rpcVersion:1 } }));
-    }
-    if (msg.op === 5 && msg.d && msg.d.eventType === 'InputSettingsChanged') {
-      var settings = msg.d.eventData && msg.d.eventData.inputSettings;
-      if (settings && settings.text !== undefined) {
-        ST.obsTexts[idx] = settings.text || '';
-        if (ST.activeSub === idx) drawSubText(ST.obsTexts[idx]);
+    if (!msg.payload || !msg.payload.record || msg.payload.type !== 'UPDATE') return;
+    var r = msg.payload.record;
+    // ابحث عن اللغة المناسبة
+    ST.langs.forEach(function(l, i) {
+      if (l.id && String(l.id) === String(r.id) && r.obs_text !== undefined) {
+        ST.obsTexts[i] = r.obs_text || '';
+        if (ST.activeSub === i) drawSubText(ST.obsTexts[i]);
+        updateObsDot(i, true);
       }
-    }
+    });
   };
   ws.onclose = function() {
-    updateObsDot(idx, false);
-    setTimeout(function() { connectOBS(idx, ip, port, pass, source); }, 5000);
+    setTimeout(startObsRealtime, 5000);
   };
-
-  // polling كل 100ms
-  var poll = setInterval(function() {
-    if (ws.readyState !== 1) { clearInterval(poll); return; }
-    if (!source) return;
-    reqId++;
-    ws.send(JSON.stringify({
-      op:6, d:{ requestType:'GetInputSettings', requestId:'r'+reqId, requestData:{ inputName: source } }
-    }));
-  }, 100);
-
-  ws.addEventListener('message', function(e) {
-    var msg = JSON.parse(e.data);
-    if (msg.op === 7 && msg.d && msg.d.responseData) {
-      var t = msg.d.responseData.inputSettings && msg.d.responseData.inputSettings.text;
-      if (t !== undefined) {
-        ST.obsTexts[idx] = t || '';
-        if (ST.activeSub === idx) drawSubText(ST.obsTexts[idx]);
-      }
-    }
-  });
 }
 
 function updateObsDot(idx, on) {
