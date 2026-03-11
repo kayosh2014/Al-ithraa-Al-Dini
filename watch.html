@@ -398,13 +398,12 @@ async function loadPage(id) {
         else if (l.icecast_url)  loadIcecast(i, l.icecast_url);
       });
     }
-    // sync_start — لا نأخذه من قاعدة البيانات عند التحميل
-    // ننتظر فقط حدث realtime من المشرف "بدأ التزامن" حتى لا يشتغل تلقائياً
-    ST.syncStart = null;
+    if (ST.mode === 'sync' && page.sync_start) {
+      ST.syncStart = new Date(page.sync_start).getTime();
+    }
     buildLangPanel();
-    // sync — لا تشغّل الترجمة حتى يضغط المشرف "بدأ التزامن"
-    // recorded — اختر أول ترجمة تلقائياً فقط
-    if (ST.mode === 'recorded') {
+    // sync — اختر أول لغة عندها ترجمة تلقائياً
+    if (ST.mode === 'sync') {
       for (var _si=0; _si<ST.langs.length; _si++) {
         if (ST.subs[_si] && ST.subs[_si].events && ST.subs[_si].events.length) { setSub(_si); break; }
       }
@@ -586,21 +585,22 @@ function updateObsDot(idx, on) {
 
 function loadYTAudio(idx, url) {
   var id = extractYTId(url); if (!id) return;
-  var iframe = document.createElement('iframe');
-  iframe.src = 'https://www.youtube.com/embed/' + id + '?autoplay=0&controls=0';
-  iframe.style.display = 'none'; iframe.id = 'yt-audio-' + idx;
-  document.body.appendChild(iframe);
-  var ytAud = null;
+  var wrap = document.createElement('div');
+  wrap.style.cssText = 'position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;z-index:-1;overflow:hidden;';
+  wrap.innerHTML = '<div id="yta-' + idx + '"></div>';
+  document.body.appendChild(wrap);
   var t = setInterval(function() {
     if (!window.YT || !window.YT.Player) return;
     clearInterval(t);
-    ytAud = new YT.Player('yt-audio-' + idx, {
+    new YT.Player('yta-' + idx, {
+      videoId: id,
+      playerVars: { autoplay:0, controls:0, rel:0, playsinline:1 },
       events: { onReady: function(e) {
         e.target.setVolume(0);
         ST.audioEls[idx] = e.target;
       }}
     });
-  }, 500);
+  }, 300);
 }
 
 function loadIcecast(idx, url) {
@@ -620,8 +620,8 @@ function setAudio(idx) {
     else { el.pause(); el.volume = 0; }
   });
   if (idx === -2) {
-    // أصلي — تأكد رفع الكتم وضبط الصوت
-    if (ytPlayer) { ytPlayer.unMute(); ytPlayer.setVolume(ST.vol); }
+    // أصلي
+    if (ytPlayer && ytPlayer.setVolume) ytPlayer.setVolume(ST.vol);
     document.getElementById('lang-btn-txt').textContent = 'الصوت الأصلي';
     updateLangBtnHighlight('audio', -2);
   } else if (idx === -1) {
@@ -631,21 +631,15 @@ function setAudio(idx) {
   } else {
     var el = ST.audioEls[idx];
     if (el) {
-      // في وضع sync — لا تشغّل الصوت حتى يضغط المشرف "بدأ التزامن"
-      if (ST.mode === 'sync' && !ST.syncStart) {
+      var _vt = ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0;
+      if (_vt < ST.audioDelay) {
+        // الفيديو لم يصل لوقت بدء الصوت بعد — انتظر
         el.volume = 0;
         if (typeof el.pauseVideo === 'function') el.pauseVideo(); else el.pause();
       } else {
-        var _vt = ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0;
-        if (_vt < ST.audioDelay) {
-          // الفيديو لم يصل لوقت بدء الصوت بعد — انتظر
-          el.volume = 0;
-          if (typeof el.pauseVideo === 'function') el.pauseVideo(); else el.pause();
-        } else {
-          var _at = _vt - ST.audioDelay;
-          if (typeof el.seekTo === 'function') { el.seekTo(_at, true); el.setVolume(ST.vol); el.playVideo(); }
-          else { el.currentTime = _at; el.volume = ST.vol / 100; if (ST.playing) el.play().catch(function(){}); }
-        }
+        var _at = _vt - ST.audioDelay;
+        if (typeof el.seekTo === 'function') { el.seekTo(_at, true); el.setVolume(ST.vol); el.playVideo(); }
+        else { el.currentTime = _at; el.volume = ST.vol / 100; if (ST.playing) el.play().catch(function(){}); }
       }
     }
     // feedback — الصوت الأصلي في الخلفية
@@ -912,48 +906,28 @@ function startRealtimePage(pageId) {
       // تحديث sync_start
       if (typeof s.sync_start !== 'undefined') {
         if (s.sync_start && ST.mode === 'sync') {
-          // 1) عيّن syncStart أولاً حتى يعمل الـ loop والترجمة
           ST.syncStart = new Date(s.sync_start).getTime();
-
-          // 2) اختر أول ترجمة نصية تلقائياً إذا لم يختر المشاهد بعد
+          // اختر أول ترجمة تلقائياً
           if (ST.activeSub < 0) {
             for (var _ri=0; _ri<ST.langs.length; _ri++) {
               if (ST.subs[_ri] && ST.subs[_ri].events && ST.subs[_ri].events.length) { setSub(_ri); break; }
             }
           }
-
-          // 3) شغّل الصوت المترجم إذا اختار المشاهد لغة، أو أظهر الصوت الأصلي
-          var _re = Math.max(0, (Date.now() - ST.syncStart) / 1000);
+          // شغّل الصوت فوراً
           if (ST.activeAudio >= 0) {
-            // لغة مترجمة — شغّلها من الموضع الصحيح
-            var _ra = ST.audioEls[ST.activeAudio];
+            var _ra=ST.audioEls[ST.activeAudio];
             if (_ra) {
-              if (typeof _ra.seekTo === 'function') { _ra.seekTo(_re, true); _ra.setVolume(ST.vol); _ra.playVideo(); }
-              else { _ra.currentTime = _re; _ra.volume = ST.vol / 100; _ra.play().catch(function(){}); }
+              var _re=Math.max(0,(Date.now()-ST.syncStart)/1000);
+              if(typeof _ra.seekTo==='function'){_ra.seekTo(_re,true);_ra.setVolume(ST.vol);_ra.playVideo();}
+              else{_ra.currentTime=_re;_ra.volume=ST.vol/100;_ra.play().catch(function(){});}
             }
-            // كتم الفيديو الأصلي حسب feedback
-            if (ytPlayer) {
-              if (ST.feedback <= 0) ytPlayer.mute();
-              else { ytPlayer.unMute(); ytPlayer.setVolume(ST.feedback); }
-            }
-          } else if (ST.activeAudio === -2) {
-            // الصوت الأصلي — تأكد أنه غير مكتوم
-            if (ytPlayer) { ytPlayer.unMute(); ytPlayer.setVolume(ST.vol); }
           }
-
         } else {
-          // أوقف التزامن — أوقف كل شيء
           ST.syncStart = null;
           ST.activeSub = -1;
           clearCanvas();
-          Object.keys(ST.audioEls).forEach(function(i){
-            var _a = ST.audioEls[i]; if (!_a) return;
-            if (typeof _a.pauseVideo === 'function') _a.pauseVideo(); else _a.pause();
-          });
-          // أعد الصوت الأصلي
-          if (ytPlayer) { ytPlayer.unMute(); ytPlayer.setVolume(ST.vol); }
-          ST.activeAudio = -2;
-          document.getElementById('lang-btn-txt').textContent = 'الصوت الأصلي';
+          Object.keys(ST.audioEls).forEach(function(i){ var _a=ST.audioEls[i]; if(!_a)return; if(typeof _a.pauseVideo==='function') _a.pauseVideo(); else _a.pause(); });
+          clearCanvas();
         }
       }
       // تحديث feedback
