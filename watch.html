@@ -398,12 +398,13 @@ async function loadPage(id) {
         else if (l.icecast_url)  loadIcecast(i, l.icecast_url);
       });
     }
-    if (ST.mode === 'sync' && page.sync_start) {
-      ST.syncStart = new Date(page.sync_start).getTime();
-    }
+    // sync_start — لا نأخذه من قاعدة البيانات عند التحميل
+    // ننتظر فقط حدث realtime من المشرف "بدأ التزامن" حتى لا يشتغل تلقائياً
+    ST.syncStart = null;
     buildLangPanel();
-    // sync — اختر أول لغة عندها ترجمة تلقائياً
-    if (ST.mode === 'sync') {
+    // sync — لا تشغّل الترجمة حتى يضغط المشرف "بدأ التزامن"
+    // recorded — اختر أول ترجمة تلقائياً فقط
+    if (ST.mode === 'recorded') {
       for (var _si=0; _si<ST.langs.length; _si++) {
         if (ST.subs[_si] && ST.subs[_si].events && ST.subs[_si].events.length) { setSub(_si); break; }
       }
@@ -585,15 +586,15 @@ function updateObsDot(idx, on) {
 
 function loadYTAudio(idx, url) {
   var id = extractYTId(url); if (!id) return;
-  var div = document.createElement('div');
-  div.style.display = 'none'; div.id = 'yt-audio-' + idx;
-  document.body.appendChild(div);
+  var iframe = document.createElement('iframe');
+  iframe.src = 'https://www.youtube.com/embed/' + id + '?autoplay=0&controls=0';
+  iframe.style.display = 'none'; iframe.id = 'yt-audio-' + idx;
+  document.body.appendChild(iframe);
+  var ytAud = null;
   var t = setInterval(function() {
     if (!window.YT || !window.YT.Player) return;
     clearInterval(t);
-    new YT.Player('yt-audio-' + idx, {
-      videoId: id,
-      playerVars: { autoplay: 0, controls: 0, mute: 1 },
+    ytAud = new YT.Player('yt-audio-' + idx, {
       events: { onReady: function(e) {
         e.target.setVolume(0);
         ST.audioEls[idx] = e.target;
@@ -630,15 +631,21 @@ function setAudio(idx) {
   } else {
     var el = ST.audioEls[idx];
     if (el) {
-      var _vt = ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0;
-      if (_vt < ST.audioDelay) {
-        // الفيديو لم يصل لوقت بدء الصوت بعد — انتظر
+      // في وضع sync — لا تشغّل الصوت حتى يضغط المشرف "بدأ التزامن"
+      if (ST.mode === 'sync' && !ST.syncStart) {
         el.volume = 0;
         if (typeof el.pauseVideo === 'function') el.pauseVideo(); else el.pause();
       } else {
-        var _at = _vt - ST.audioDelay;
-        if (typeof el.seekTo === 'function') { el.seekTo(_at, true); el.setVolume(ST.vol); el.playVideo(); }
-        else { el.currentTime = _at; el.volume = ST.vol / 100; if (ST.playing) el.play().catch(function(){}); }
+        var _vt = ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0;
+        if (_vt < ST.audioDelay) {
+          // الفيديو لم يصل لوقت بدء الصوت بعد — انتظر
+          el.volume = 0;
+          if (typeof el.pauseVideo === 'function') el.pauseVideo(); else el.pause();
+        } else {
+          var _at = _vt - ST.audioDelay;
+          if (typeof el.seekTo === 'function') { el.seekTo(_at, true); el.setVolume(ST.vol); el.playVideo(); }
+          else { el.currentTime = _at; el.volume = ST.vol / 100; if (ST.playing) el.play().catch(function(){}); }
+        }
       }
     }
     // feedback — الصوت الأصلي في الخلفية
