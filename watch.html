@@ -935,7 +935,7 @@ function startRealtimePage(pageId) {
     if (typeof s.sync_start !== 'undefined') {
       if (s.sync_start && ST.mode === 'sync') {
         // سجّل وقت البدء — الـ loop يتكفل بالترجمة والصوت
-        ST.syncStart = new Date(s.sync_start).getTime();
+        ST.syncStart = Date.now(); // وقت الاستلام وليس وقت الـ server
         // اختر أول ترجمة نصية تلقائياً إذا لم يختر المشاهد
         if (ST.activeSub < 0) {
           for (var _ri=0; _ri<ST.langs.length; _ri++) {
