@@ -916,11 +916,12 @@ function startRealtimePage(pageId) {
     var msg = JSON.parse(e.data);
     console.log('[RT raw]', JSON.stringify(msg).substring(0, 200));
     var s = null;
-    if (msg.event === 'UPDATE') {
-      s = msg.payload && msg.payload.record;
-    } else if (msg.event === 'postgres_changes') {
-      var d = msg.payload && msg.payload.data;
-      if (d && d.type === 'UPDATE') s = d.record;
+    if (msg.event === 'UPDATE' && msg.payload && msg.payload.record) {
+      s = msg.payload.record;
+    } else if (msg.payload && msg.payload.type === 'UPDATE' && msg.payload.record) {
+      s = msg.payload.record;
+    } else if (msg.payload && msg.payload.data && msg.payload.data.type === 'UPDATE') {
+      s = msg.payload.data.record;
     }
     if (!s || String(s.id) !== String(pageId)) return;
     // تغيير الحالة
