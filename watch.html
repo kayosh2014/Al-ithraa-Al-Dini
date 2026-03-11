@@ -627,7 +627,7 @@ function setAudio(idx) {
   });
   if (idx === -2) {
     // أصلي — تأكد رفع الكتم وضبط الصوت
-    if (ytPlayer) { ytPlayer.unMute(); ytPlayer.setVolume(ST.vol); }
+    if (ytPlayer && typeof ytPlayer.unMute === 'function') { ytPlayer.unMute(); ytPlayer.setVolume(ST.vol); }
     document.getElementById('lang-btn-txt').textContent = 'الصوت الأصلي';
     updateLangBtnHighlight('audio', -2);
   } else if (idx === -1) {
@@ -655,7 +655,7 @@ function setAudio(idx) {
       }
     }
     // feedback — الصوت الأصلي في الخلفية
-    if (ytPlayer) {
+    if (ytPlayer && typeof ytPlayer.mute === 'function') {
       if (ST.feedback <= 0) ytPlayer.mute();
       else { ytPlayer.unMute(); ytPlayer.setVolume(ST.feedback); }
     }
@@ -854,7 +854,7 @@ function setVol(v) {
       if (typeof el.setVolume === 'function') el.setVolume(ST.vol);
       else el.volume = ST.vol/100;
     }
-    if (ytPlayer) {
+    if (ytPlayer && typeof ytPlayer.mute === 'function') {
       if (ST.feedback <= 0) ytPlayer.mute();
       else { ytPlayer.unMute(); ytPlayer.setVolume(ST.feedback); }
     }
@@ -947,8 +947,10 @@ function startRealtimePage(pageId) {
         }
         // كتم الفيديو الأصلي إذا اختار المشاهد لغة مترجمة
         if (ST.activeAudio >= 0 && ytPlayer) {
-          if (ST.feedback <= 0) ytPlayer.mute();
-          else { ytPlayer.unMute(); ytPlayer.setVolume(ST.feedback); }
+          if (ytPlayer && typeof ytPlayer.mute === 'function') {
+            if (ST.feedback <= 0) ytPlayer.mute();
+            else { ytPlayer.unMute(); ytPlayer.setVolume(ST.feedback); }
+          }
         }
       } else {
         // أوقف التزامن — أوقف كل شيء
@@ -959,7 +961,7 @@ function startRealtimePage(pageId) {
           var _a = ST.audioEls[i]; if (!_a) return;
           if (typeof _a.pauseVideo === 'function') _a.pauseVideo(); else _a.pause();
         });
-        if (ytPlayer) { ytPlayer.unMute(); ytPlayer.setVolume(ST.vol); }
+        if (ytPlayer && typeof ytPlayer.unMute === 'function') { ytPlayer.unMute(); ytPlayer.setVolume(ST.vol); }
         ST.activeAudio = -2;
         document.getElementById('lang-btn-txt').textContent = 'الصوت الأصلي';
       }
