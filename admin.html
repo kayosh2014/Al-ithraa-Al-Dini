@@ -361,32 +361,85 @@ select.inp option{background:var(--bg3);}
 
           <!-- تأخير الترجمة — لفئة مسجل فقط -->
           <div id="delay-settings-wrap" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
-            <div style="font-size:.75rem;color:var(--silver);margin-bottom:10px">⏱ تأخير بدء الترجمة والصوت (لمزامنة التسجيل)</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-              <div class="field">
-                <label>تأخير الترجمة النصية</label>
-                <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
-                  <button type="button" onclick="stepDelay('sub',-1)" style="width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--silver);cursor:pointer;font-size:1rem">−</button>
-                  <div style="flex:1;text-align:center">
-                    <span id="f-sub-delay-val" style="font-size:1rem;color:var(--gold);font-weight:600">0</span>
-                    <span style="font-size:.7rem;color:var(--silver)"> ث</span>
+            <div style="font-size:.75rem;color:var(--silver);margin-bottom:12px">⏱ تأخير بدء الترجمة والصوت</div>
+
+            <!-- صف العناوين -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:8px">
+              <div style="font-size:.75rem;color:var(--silver);text-align:center">الترجمة النصية</div>
+              <div style="font-size:.75rem;color:var(--silver);text-align:center">الترجمة الصوتية</div>
+            </div>
+
+            <!-- صف الأرقام -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
+              <!-- نصية -->
+              <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px">
+                <div style="display:flex;justify-content:center;align-items:center;gap:4px;font-family:monospace">
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+                    <button type="button" onclick="stepDelayUnit('sub','h',1)" style="background:none;border:none;color:var(--silver);cursor:pointer;font-size:.7rem;padding:1px 6px">▲</button>
+                    <span id="sub-h" style="font-size:1.3rem;color:var(--gold);font-weight:700;min-width:28px;text-align:center">00</span>
+                    <button type="button" onclick="stepDelayUnit('sub','h',-1)" style="background:none;border:none;color:var(--silver);cursor:pointer;font-size:.7rem;padding:1px 6px">▼</button>
+                    <span style="font-size:.6rem;color:var(--silver)">س</span>
                   </div>
-                  <button type="button" onclick="stepDelay('sub',1)" style="width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--silver);cursor:pointer;font-size:1rem">+</button>
+                  <span style="font-size:1.3rem;color:var(--silver);margin-bottom:14px">:</span>
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+                    <button type="button" onclick="stepDelayUnit('sub','m',1)" style="background:none;border:none;color:var(--silver);cursor:pointer;font-size:.7rem;padding:1px 6px">▲</button>
+                    <span id="sub-m" style="font-size:1.3rem;color:var(--gold);font-weight:700;min-width:28px;text-align:center">00</span>
+                    <button type="button" onclick="stepDelayUnit('sub','m',-1)" style="background:none;border:none;color:var(--silver);cursor:pointer;font-size:.7rem;padding:1px 6px">▼</button>
+                    <span style="font-size:.6rem;color:var(--silver)">د</span>
+                  </div>
+                  <span style="font-size:1.3rem;color:var(--silver);margin-bottom:14px">:</span>
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+                    <button type="button" onclick="stepDelayUnit('sub','s',1)" style="background:none;border:none;color:var(--silver);cursor:pointer;font-size:.7rem;padding:1px 6px">▲</button>
+                    <span id="sub-s" style="font-size:1.3rem;color:var(--gold);font-weight:700;min-width:28px;text-align:center">00</span>
+                    <button type="button" onclick="stepDelayUnit('sub','s',-1)" style="background:none;border:none;color:var(--silver);cursor:pointer;font-size:.7rem;padding:1px 6px">▼</button>
+                    <span style="font-size:.6rem;color:var(--silver)">ث</span>
+                  </div>
+                  <span style="font-size:1.3rem;color:var(--silver);margin-bottom:14px">:</span>
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+                    <button type="button" onclick="stepDelayUnit('sub','f',1)" style="background:none;border:none;color:var(--silver);cursor:pointer;font-size:.7rem;padding:1px 6px">▲</button>
+                    <span id="sub-f" style="font-size:1.3rem;color:var(--gold);font-weight:700;min-width:28px;text-align:center">00</span>
+                    <button type="button" onclick="stepDelayUnit('sub','f',-1)" style="background:none;border:none;color:var(--silver);cursor:pointer;font-size:.7rem;padding:1px 6px">▼</button>
+                    <span style="font-size:.6rem;color:var(--silver)">جز</span>
+                  </div>
                 </div>
                 <input type="hidden" id="f-sub-delay" value="0">
               </div>
-              <div class="field">
-                <label>تأخير الترجمة الصوتية</label>
-                <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
-                  <button type="button" onclick="stepDelay('audio',-1)" style="width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--silver);cursor:pointer;font-size:1rem">−</button>
-                  <div style="flex:1;text-align:center">
-                    <span id="f-audio-delay-val" style="font-size:1rem;color:var(--gold);font-weight:600">0</span>
-                    <span style="font-size:.7rem;color:var(--silver)"> ث</span>
+
+              <!-- صوتية -->
+              <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px">
+                <div style="display:flex;justify-content:center;align-items:center;gap:4px;font-family:monospace">
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+                    <button type="button" onclick="stepDelayUnit('audio','h',1)" style="background:none;border:none;color:var(--silver);cursor:pointer;font-size:.7rem;padding:1px 6px">▲</button>
+                    <span id="audio-h" style="font-size:1.3rem;color:var(--gold);font-weight:700;min-width:28px;text-align:center">00</span>
+                    <button type="button" onclick="stepDelayUnit('audio','h',-1)" style="background:none;border:none;color:var(--silver);cursor:pointer;font-size:.7rem;padding:1px 6px">▼</button>
+                    <span style="font-size:.6rem;color:var(--silver)">س</span>
                   </div>
-                  <button type="button" onclick="stepDelay('audio',1)" style="width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--silver);cursor:pointer;font-size:1rem">+</button>
+                  <span style="font-size:1.3rem;color:var(--silver);margin-bottom:14px">:</span>
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+                    <button type="button" onclick="stepDelayUnit('audio','m',1)" style="background:none;border:none;color:var(--silver);cursor:pointer;font-size:.7rem;padding:1px 6px">▲</button>
+                    <span id="audio-m" style="font-size:1.3rem;color:var(--gold);font-weight:700;min-width:28px;text-align:center">00</span>
+                    <button type="button" onclick="stepDelayUnit('audio','m',-1)" style="background:none;border:none;color:var(--silver);cursor:pointer;font-size:.7rem;padding:1px 6px">▼</button>
+                    <span style="font-size:.6rem;color:var(--silver)">د</span>
+                  </div>
+                  <span style="font-size:1.3rem;color:var(--silver);margin-bottom:14px">:</span>
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+                    <button type="button" onclick="stepDelayUnit('audio','s',1)" style="background:none;border:none;color:var(--silver);cursor:pointer;font-size:.7rem;padding:1px 6px">▲</button>
+                    <span id="audio-s" style="font-size:1.3rem;color:var(--gold);font-weight:700;min-width:28px;text-align:center">00</span>
+                    <button type="button" onclick="stepDelayUnit('audio','s',-1)" style="background:none;border:none;color:var(--silver);cursor:pointer;font-size:.7rem;padding:1px 6px">▼</button>
+                    <span style="font-size:.6rem;color:var(--silver)">ث</span>
+                  </div>
+                  <span style="font-size:1.3rem;color:var(--silver);margin-bottom:14px">:</span>
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+                    <button type="button" onclick="stepDelayUnit('audio','f',1)" style="background:none;border:none;color:var(--silver);cursor:pointer;font-size:.7rem;padding:1px 6px">▲</button>
+                    <span id="audio-f" style="font-size:1.3rem;color:var(--gold);font-weight:700;min-width:28px;text-align:center">00</span>
+                    <button type="button" onclick="stepDelayUnit('audio','f',-1)" style="background:none;border:none;color:var(--silver);cursor:pointer;font-size:.7rem;padding:1px 6px">▼</button>
+                    <span style="font-size:.6rem;color:var(--silver)">جز</span>
+                  </div>
                 </div>
                 <input type="hidden" id="f-audio-delay" value="0">
               </div>
+
             </div>
           </div>
         </div>
@@ -592,10 +645,8 @@ function resetCreateForm(){
   document.getElementById('f-type').value='خطبة';
   var fb=document.getElementById('f-feedback');
   if(fb){fb.value=0;document.getElementById('f-feedback-val').textContent='0%';}
-  document.getElementById('f-sub-delay').value=0;
-  document.getElementById('f-sub-delay-val').textContent='0';
-  document.getElementById('f-audio-delay').value=0;
-  document.getElementById('f-audio-delay-val').textContent='0';
+  setDelayFromSeconds('sub', 0);
+  setDelayFromSeconds('audio', 0);
   document.getElementById('f-location').value='مكة';
   setCat('recorded',document.querySelector('[data-cat="recorded"]'));
   setStatus('upcoming',document.querySelector('[data-status="upcoming"]'));
@@ -898,10 +949,8 @@ async function editPage(id){
     document.getElementById('f-yt-url').value=p.yt_url||'';
     document.getElementById('f-location').value=p.location||'مكة';
     document.getElementById('f-obs-port').value=p.obs_port||'4455';
-    document.getElementById('f-sub-delay').value=p.sub_delay||0;
-    document.getElementById('f-sub-delay-val').textContent=p.sub_delay||0;
-    document.getElementById('f-audio-delay').value=p.audio_delay||0;
-    document.getElementById('f-audio-delay-val').textContent=p.audio_delay||0;
+    setDelayFromSeconds('sub',   parseFloat(p.sub_delay)||0);
+    setDelayFromSeconds('audio', parseFloat(p.audio_delay)||0);
     document.getElementById('f-obs-pass').value=p.obs_pass||'';
     var fb=document.getElementById('f-feedback');
     if(fb){fb.value=p.feedback||0;document.getElementById('f-feedback-val').textContent=(p.feedback||0)+'%';}
@@ -1027,13 +1076,47 @@ function startRealtime(){
 }
 
 // ══ SYNC ══
-function stepDelay(type, delta) {
-  var inp = document.getElementById('f-' + type + '-delay');
-  var lbl = document.getElementById('f-' + type + '-delay-val');
-  var val = parseFloat(inp.value) + delta;
-  if (val < 0) val = 0;
-  inp.value = val;
-  lbl.textContent = val;
+// ══ دوال التأخير ══
+var _delayState = {
+  sub:   {h:0,m:0,s:0,f:0},
+  audio: {h:0,m:0,s:0,f:0}
+};
+
+function stepDelayUnit(type, unit, delta) {
+  var d = _delayState[type];
+  d[unit] += delta;
+  // تقييد
+  if (d.f > 99) { d.f=0; d.s+=1; }
+  if (d.f < 0)  { d.f=99; d.s-=1; }
+  if (d.s > 59) { d.s=0; d.m+=1; }
+  if (d.s < 0)  { d.s=59; d.m-=1; }
+  if (d.m > 59) { d.m=0; d.h+=1; }
+  if (d.m < 0)  { d.m=59; d.h-=1; }
+  if (d.h < 0)  { d.h=0; d.m=0; d.s=0; d.f=0; }
+  updateDelayUI(type);
+}
+
+function updateDelayUI(type) {
+  var d = _delayState[type];
+  var pad = function(n){return n<10?'0'+n:''+n;};
+  document.getElementById(type+'-h').textContent = pad(d.h);
+  document.getElementById(type+'-m').textContent = pad(d.m);
+  document.getElementById(type+'-s').textContent = pad(d.s);
+  document.getElementById(type+'-f').textContent = pad(d.f);
+  // احفظ بالثواني
+  var total = d.h*3600 + d.m*60 + d.s + d.f/100;
+  document.getElementById('f-'+type+'-delay').value = total.toFixed(2);
+}
+
+function setDelayFromSeconds(type, total) {
+  var d = _delayState[type];
+  d.h = Math.floor(total / 3600);
+  total -= d.h * 3600;
+  d.m = Math.floor(total / 60);
+  total -= d.m * 60;
+  d.s = Math.floor(total);
+  d.f = Math.round((total - d.s) * 100);
+  updateDelayUI(type);
 }
 
 var _syncInterval = null;
