@@ -901,7 +901,6 @@ function startRealtimePage(pageId) {
   ws.onmessage = function(e) {
     var msg = JSON.parse(e.data);
     console.log('[RT raw]', JSON.stringify(msg).substring(0, 200));
-    // دعم النسختين
     var s = null;
     if (msg.event === 'UPDATE') {
       s = msg.payload && msg.payload.record;
@@ -910,75 +909,60 @@ function startRealtimePage(pageId) {
       if (d && d.type === 'UPDATE') s = d.record;
     }
     if (!s || String(s.id) !== String(pageId)) return;
-      // تغيير الحالة
-      if (s.status === 'upcoming') {
-        showNoLive('يبدأ البث قريباً', s.title_ar || '');
-        document.getElementById('player-wrap').style.display = 'none';
-      } else if (s.status === 'ended' || s.status === 'recorded') {
-        showNoLive('انتهى البث', 'شكراً لمتابعتكم');
-        document.getElementById('player-wrap').style.display = 'none';
-      } else if (s.status === 'live') {
-        // بدأ البث
-        document.getElementById('no-live').classList.remove('show');
-        loadPage(pageId);
-      }
-      // تحديث sync_start
-      if (typeof s.sync_start !== 'undefined') {
-        if (s.sync_start && ST.mode === 'sync') {
-          // 1) عيّن syncStart أولاً حتى يعمل الـ loop والترجمة
-          ST.syncStart = new Date(s.sync_start).getTime();
-          console.log('[sync] syncStart set:', ST.syncStart, '| mode:', ST.mode, '| langs:', ST.langs.length, '| subs:', ST.subs.length, '| audioEls:', Object.keys(ST.audioEls).length);
-
-          // 2) اختر أول ترجمة نصية تلقائياً إذا لم يختر المشاهد بعد
-          if (ST.activeSub < 0) {
-            for (var _ri=0; _ri<ST.langs.length; _ri++) {
-              if (ST.subs[_ri] && ST.subs[_ri].events && ST.subs[_ri].events.length) { setSub(_ri); break; }
-            }
+    // تغيير الحالة
+    if (s.status === 'upcoming') {
+      showNoLive('يبدأ البث قريباً', s.title_ar || '');
+      document.getElementById('player-wrap').style.display = 'none';
+    } else if (s.status === 'ended' || s.status === 'recorded') {
+      showNoLive('انتهى البث', 'شكراً لمتابعتكم');
+      document.getElementById('player-wrap').style.display = 'none';
+    } else if (s.status === 'live') {
+      document.getElementById('no-live').classList.remove('show');
+      loadPage(pageId);
+    }
+    // تحديث sync_start
+    if (typeof s.sync_start !== 'undefined') {
+      if (s.sync_start && ST.mode === 'sync') {
+        ST.syncStart = new Date(s.sync_start).getTime();
+        console.log('[sync]', ST.syncStart, 'subs:', ST.subs.length, 'audioEls:', Object.keys(ST.audioEls).length);
+        // اختر أول ترجمة نصية
+        if (ST.activeSub < 0) {
+          for (var _ri=0; _ri<ST.langs.length; _ri++) {
+            if (ST.subs[_ri] && ST.subs[_ri].events && ST.subs[_ri].events.length) { setSub(_ri); break; }
           }
-
-          // 3) شغّل الصوت — مع انتظار تحميل الـ player إذا لم يكن جاهزاً
-          function doActivateAudio() {
-            var _re = Math.max(0, (Date.now() - ST.syncStart) / 1000);
-            if (ST.activeAudio >= 0) {
-              var _ra = ST.audioEls[ST.activeAudio];
-              if (_ra) {
-                if (typeof _ra.seekTo === 'function') { _ra.seekTo(_re, true); _ra.setVolume(ST.vol); _ra.playVideo(); }
-                else { _ra.currentTime = _re; _ra.volume = ST.vol / 100; _ra.play().catch(function(){}); }
-              } else {
-                // الـ player لم يُحمَّل بعد — انتظر ثانية وحاول مرة ثانية
-                setTimeout(doActivateAudio, 1000);
-                return;
-              }
-              if (ytPlayer) {
-                if (ST.feedback <= 0) ytPlayer.mute();
-                else { ytPlayer.unMute(); ytPlayer.setVolume(ST.feedback); }
-              }
-            } else if (ST.activeAudio === -2) {
-              if (ytPlayer) { ytPlayer.unMute(); ytPlayer.setVolume(ST.vol); }
-            }
-          }
-          doActivateAudio();
-
-        } else {
-          // أوقف التزامن — أوقف كل شيء
-          ST.syncStart = null;
-          ST.activeSub = -1;
-          clearCanvas();
-          Object.keys(ST.audioEls).forEach(function(i){
-            var _a = ST.audioEls[i]; if (!_a) return;
-            if (typeof _a.pauseVideo === 'function') _a.pauseVideo(); else _a.pause();
-          });
-          // أعد الصوت الأصلي
-          if (ytPlayer) { ytPlayer.unMute(); ytPlayer.setVolume(ST.vol); }
-          ST.activeAudio = -2;
-          document.getElementById('lang-btn-txt').textContent = 'الصوت الأصلي';
         }
+        // شغّل الصوت
+        var _re = Math.max(0, (Date.now() - ST.syncStart) / 1000);
+        if (ST.activeAudio >= 0) {
+          var _ra = ST.audioEls[ST.activeAudio];
+          if (_ra) {
+            if (typeof _ra.seekTo === 'function') { _ra.seekTo(_re, true); _ra.setVolume(ST.vol); _ra.playVideo(); }
+            else { _ra.currentTime = _re; _ra.volume = ST.vol / 100; _ra.play().catch(function(){}); }
+          }
+          if (ytPlayer) {
+            if (ST.feedback <= 0) ytPlayer.mute();
+            else { ytPlayer.unMute(); ytPlayer.setVolume(ST.feedback); }
+          }
+        } else if (ST.activeAudio === -2) {
+          if (ytPlayer) { ytPlayer.unMute(); ytPlayer.setVolume(ST.vol); }
+        }
+      } else {
+        ST.syncStart = null;
+        ST.activeSub = -1;
+        clearCanvas();
+        Object.keys(ST.audioEls).forEach(function(i){
+          var _a = ST.audioEls[i]; if (!_a) return;
+          if (typeof _a.pauseVideo === 'function') _a.pauseVideo(); else _a.pause();
+        });
+        if (ytPlayer) { ytPlayer.unMute(); ytPlayer.setVolume(ST.vol); }
+        ST.activeAudio = -2;
+        document.getElementById('lang-btn-txt').textContent = 'الصوت الأصلي';
       }
-      // تحديث feedback
-      if (s.feedback !== undefined) {
-        ST.feedback = s.feedback;
-        if (ST.activeAudio >= 0 && ytPlayer && ytPlayer.setVolume) ytPlayer.setVolume(ST.feedback);
-      }
+    }
+    // تحديث feedback
+    if (s.feedback !== undefined) {
+      ST.feedback = s.feedback;
+      if (ST.activeAudio >= 0 && ytPlayer && ytPlayer.setVolume) ytPlayer.setVolume(ST.feedback);
     }
   };
   ws.onclose = function() { setTimeout(function(){ startRealtimePage(pageId); }, 5000); };
