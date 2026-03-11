@@ -705,7 +705,7 @@ function startLoop() {
     }
 
     // ── الترجمة الصوتية ──
-    if (ST.activeAudio >= 0 && ST.playing) {
+    if (ST.activeAudio >= 0 && ST.playing && (ST.mode !== 'sync' || ST.syncStart)) {
       var _ael = ST.audioEls[ST.activeAudio];
       if (_ael) {
         var _isPaused = typeof _ael.getPlayerState === 'function'
