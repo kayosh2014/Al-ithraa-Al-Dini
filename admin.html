@@ -377,28 +377,28 @@ select.inp option{background:var(--bg3);}
                 <div style="display:flex;justify-content:center;align-items:center;gap:4px;font-family:monospace">
                   <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
                     <button type="button" onclick="stepDelayUnit('sub','h',1)" style="background:none;border:none;color:var(--silver);cursor:pointer;font-size:.7rem;padding:1px 6px">▲</button>
-                    <span id="sub-h" style="font-size:1.3rem;color:var(--gold);font-weight:700;min-width:28px;text-align:center">00</span>
+                    <input type="number" id="sub-h" min="0" max="99" value="0" style="font-size:1.3rem;color:var(--gold);font-weight:700;width:32px;text-align:center;background:none;border:none;border-bottom:1px solid var(--gold);outline:none;" onchange="setDelayFromInput('sub','h',this.value)" oninput="setDelayFromInput('sub','h',this.value)">
                     <button type="button" onclick="stepDelayUnit('sub','h',-1)" style="background:none;border:none;color:var(--silver);cursor:pointer;font-size:.7rem;padding:1px 6px">▼</button>
                     <span style="font-size:.6rem;color:var(--silver)">س</span>
                   </div>
                   <span style="font-size:1.3rem;color:var(--silver);margin-bottom:14px">:</span>
                   <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
                     <button type="button" onclick="stepDelayUnit('sub','m',1)" style="background:none;border:none;color:var(--silver);cursor:pointer;font-size:.7rem;padding:1px 6px">▲</button>
-                    <span id="sub-m" style="font-size:1.3rem;color:var(--gold);font-weight:700;min-width:28px;text-align:center">00</span>
+                    <input type="number" id="sub-m" min="0" max="59" value="0" style="font-size:1.3rem;color:var(--gold);font-weight:700;width:32px;text-align:center;background:none;border:none;border-bottom:1px solid var(--gold);outline:none;" onchange="setDelayFromInput('sub','m',this.value)" oninput="setDelayFromInput('sub','m',this.value)">
                     <button type="button" onclick="stepDelayUnit('sub','m',-1)" style="background:none;border:none;color:var(--silver);cursor:pointer;font-size:.7rem;padding:1px 6px">▼</button>
                     <span style="font-size:.6rem;color:var(--silver)">د</span>
                   </div>
                   <span style="font-size:1.3rem;color:var(--silver);margin-bottom:14px">:</span>
                   <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
                     <button type="button" onclick="stepDelayUnit('sub','s',1)" style="background:none;border:none;color:var(--silver);cursor:pointer;font-size:.7rem;padding:1px 6px">▲</button>
-                    <span id="sub-s" style="font-size:1.3rem;color:var(--gold);font-weight:700;min-width:28px;text-align:center">00</span>
+                    <input type="number" id="sub-s" min="0" max="59" value="0" style="font-size:1.3rem;color:var(--gold);font-weight:700;width:32px;text-align:center;background:none;border:none;border-bottom:1px solid var(--gold);outline:none;" onchange="setDelayFromInput('sub','s',this.value)" oninput="setDelayFromInput('sub','s',this.value)">
                     <button type="button" onclick="stepDelayUnit('sub','s',-1)" style="background:none;border:none;color:var(--silver);cursor:pointer;font-size:.7rem;padding:1px 6px">▼</button>
                     <span style="font-size:.6rem;color:var(--silver)">ث</span>
                   </div>
                   <span style="font-size:1.3rem;color:var(--silver);margin-bottom:14px">:</span>
                   <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
                     <button type="button" onclick="stepDelayUnit('sub','f',1)" style="background:none;border:none;color:var(--silver);cursor:pointer;font-size:.7rem;padding:1px 6px">▲</button>
-                    <span id="sub-f" style="font-size:1.3rem;color:var(--gold);font-weight:700;min-width:28px;text-align:center">00</span>
+                    <input type="number" id="sub-f" min="0" max="99" value="0" style="font-size:1.3rem;color:var(--gold);font-weight:700;width:32px;text-align:center;background:none;border:none;border-bottom:1px solid var(--gold);outline:none;" onchange="setDelayFromInput('sub','f',this.value)" oninput="setDelayFromInput('sub','f',this.value)">
                     <button type="button" onclick="stepDelayUnit('sub','f',-1)" style="background:none;border:none;color:var(--silver);cursor:pointer;font-size:.7rem;padding:1px 6px">▼</button>
                     <span style="font-size:.6rem;color:var(--silver)">جز</span>
                   </div>
@@ -411,28 +411,28 @@ select.inp option{background:var(--bg3);}
                 <div style="display:flex;justify-content:center;align-items:center;gap:4px;font-family:monospace">
                   <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
                     <button type="button" onclick="stepDelayUnit('audio','h',1)" style="background:none;border:none;color:var(--silver);cursor:pointer;font-size:.7rem;padding:1px 6px">▲</button>
-                    <span id="audio-h" style="font-size:1.3rem;color:var(--gold);font-weight:700;min-width:28px;text-align:center">00</span>
+                    <input type="number" id="audio-h" min="0" max="99" value="0" style="font-size:1.3rem;color:var(--gold);font-weight:700;width:32px;text-align:center;background:none;border:none;border-bottom:1px solid var(--gold);outline:none;" onchange="setDelayFromInput('audio','h',this.value)" oninput="setDelayFromInput('audio','h',this.value)">
                     <button type="button" onclick="stepDelayUnit('audio','h',-1)" style="background:none;border:none;color:var(--silver);cursor:pointer;font-size:.7rem;padding:1px 6px">▼</button>
                     <span style="font-size:.6rem;color:var(--silver)">س</span>
                   </div>
                   <span style="font-size:1.3rem;color:var(--silver);margin-bottom:14px">:</span>
                   <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
                     <button type="button" onclick="stepDelayUnit('audio','m',1)" style="background:none;border:none;color:var(--silver);cursor:pointer;font-size:.7rem;padding:1px 6px">▲</button>
-                    <span id="audio-m" style="font-size:1.3rem;color:var(--gold);font-weight:700;min-width:28px;text-align:center">00</span>
+                    <input type="number" id="audio-m" min="0" max="59" value="0" style="font-size:1.3rem;color:var(--gold);font-weight:700;width:32px;text-align:center;background:none;border:none;border-bottom:1px solid var(--gold);outline:none;" onchange="setDelayFromInput('audio','m',this.value)" oninput="setDelayFromInput('audio','m',this.value)">
                     <button type="button" onclick="stepDelayUnit('audio','m',-1)" style="background:none;border:none;color:var(--silver);cursor:pointer;font-size:.7rem;padding:1px 6px">▼</button>
                     <span style="font-size:.6rem;color:var(--silver)">د</span>
                   </div>
                   <span style="font-size:1.3rem;color:var(--silver);margin-bottom:14px">:</span>
                   <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
                     <button type="button" onclick="stepDelayUnit('audio','s',1)" style="background:none;border:none;color:var(--silver);cursor:pointer;font-size:.7rem;padding:1px 6px">▲</button>
-                    <span id="audio-s" style="font-size:1.3rem;color:var(--gold);font-weight:700;min-width:28px;text-align:center">00</span>
+                    <input type="number" id="audio-s" min="0" max="59" value="0" style="font-size:1.3rem;color:var(--gold);font-weight:700;width:32px;text-align:center;background:none;border:none;border-bottom:1px solid var(--gold);outline:none;" onchange="setDelayFromInput('audio','s',this.value)" oninput="setDelayFromInput('audio','s',this.value)">
                     <button type="button" onclick="stepDelayUnit('audio','s',-1)" style="background:none;border:none;color:var(--silver);cursor:pointer;font-size:.7rem;padding:1px 6px">▼</button>
                     <span style="font-size:.6rem;color:var(--silver)">ث</span>
                   </div>
                   <span style="font-size:1.3rem;color:var(--silver);margin-bottom:14px">:</span>
                   <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
                     <button type="button" onclick="stepDelayUnit('audio','f',1)" style="background:none;border:none;color:var(--silver);cursor:pointer;font-size:.7rem;padding:1px 6px">▲</button>
-                    <span id="audio-f" style="font-size:1.3rem;color:var(--gold);font-weight:700;min-width:28px;text-align:center">00</span>
+                    <input type="number" id="audio-f" min="0" max="99" value="0" style="font-size:1.3rem;color:var(--gold);font-weight:700;width:32px;text-align:center;background:none;border:none;border-bottom:1px solid var(--gold);outline:none;" onchange="setDelayFromInput('audio','f',this.value)" oninput="setDelayFromInput('audio','f',this.value)">
                     <button type="button" onclick="stepDelayUnit('audio','f',-1)" style="background:none;border:none;color:var(--silver);cursor:pointer;font-size:.7rem;padding:1px 6px">▼</button>
                     <span style="font-size:.6rem;color:var(--silver)">جز</span>
                   </div>
@@ -667,7 +667,7 @@ function setCat(cat,el){
   document.querySelectorAll('.type-chip').forEach(function(c){c.classList.remove('active');});
   if(el) el.classList.add('active');
   document.getElementById('obs-settings-wrap').style.display=cat==='obs'?'block':'none';
-  document.getElementById('delay-settings-wrap').style.display=cat==='recorded'?'block':'none';
+  document.getElementById('delay-settings-wrap').style.display=(cat==='recorded'||cat==='sync')?'block':'none';
   // أعد رسم بطاقات اللغات الموجودة بالنوع الجديد
   var wrap=document.getElementById('langs-wrap');
   var count=wrap.querySelectorAll('.lang-card').length||2;
@@ -1105,13 +1105,25 @@ function stepDelayUnit(type, unit, delta) {
 function updateDelayUI(type) {
   var d = _delayState[type];
   var pad = function(n){return n<10?'0'+n:''+n;};
-  document.getElementById(type+'-h').textContent = pad(d.h);
-  document.getElementById(type+'-m').textContent = pad(d.m);
-  document.getElementById(type+'-s').textContent = pad(d.s);
-  document.getElementById(type+'-f').textContent = pad(d.f);
+  document.getElementById(type+'-h').value = pad(d.h);
+  document.getElementById(type+'-m').value = pad(d.m);
+  document.getElementById(type+'-s').value = pad(d.s);
+  document.getElementById(type+'-f').value = pad(d.f);
   // احفظ بالثواني
   var total = d.h*3600 + d.m*60 + d.s + d.f/100;
   document.getElementById('f-'+type+'-delay').value = total.toFixed(2);
+}
+
+function setDelayFromInput(type, unit, val) {
+  var n = parseInt(val) || 0;
+  if (n < 0) n = 0;
+  _delayState[type][unit] = n;
+  // overflow
+  var d = _delayState[type];
+  if (d.f > 99) { d.f=99; }
+  if (d.s > 59) { d.s=59; }
+  if (d.m > 59) { d.m=59; }
+  updateDelayUI(type);
 }
 
 function setDelayFromSeconds(type, total) {
