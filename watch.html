@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>مشاهدة — الإثراء الديني</title>
-<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://www.youtube.com/iframe_api"></script>
 <style>
 :root {
   --green:#1a472a; --green-md:#2d6a4f; --green-lt:#40916c;
@@ -14,991 +15,713 @@
   --border:rgba(201,168,76,.15);
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-html,body{height:100%;overflow:hidden;}
-body{background:var(--bg);color:var(--white);font-family:'Tajawal',sans-serif;}
+body{background:var(--bg);color:var(--white);font-family:'Tajawal',sans-serif;height:100vh;overflow:hidden;display:flex;flex-direction:column;}
 
-/* ══ loader ══ */
-#loader{position:fixed;inset:0;z-index:500;background:var(--bg);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;}
-#loader.hide{display:none;}
-.ld-ring{position:relative;width:60px;height:60px;display:flex;align-items:center;justify-content:center;}
-.ld-ring::before{content:'';position:absolute;inset:0;border-radius:50%;
-  border:2px solid transparent;border-top-color:var(--gold);animation:spin 1.2s linear infinite;}
-.ld-ring::after{content:'';position:absolute;inset:8px;border-radius:50%;
-  border:1px solid transparent;border-bottom-color:var(--green-lt);animation:spin 2s linear infinite reverse;}
-@keyframes spin{to{transform:rotate(360deg)}}
-.ld-icon{font-size:1.6rem;}
-.ld-txt{font-family:'Amiri',serif;font-size:1rem;color:var(--gold);}
-
-/* ══ شاشة لا يوجد بث ══ */
-#no-live{position:fixed;inset:0;z-index:400;background:var(--bg);
-  display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:20px;}
-#no-live.show{display:flex;}
-.no-live-icon{font-size:3.5rem;opacity:.4;}
-.no-live-title{font-family:'Amiri',serif;font-size:1.4rem;color:var(--white);}
-.no-live-sub{font-size:.8rem;color:var(--silver);max-width:300px;line-height:1.8;}
-.no-live-time{font-size:.72rem;color:rgba(201,168,76,.5);margin-top:4px;}
-
-/* ══ المشغل الرئيسي ══ */
-#player-wrap{position:fixed;inset:0;background:#000;}
-#yt-frame{position:absolute;inset:0;width:100%;height:100%;}
-#yt-frame iframe, #yt-frame > div{width:100%;height:100%;}
-#sub-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:5;}
-#click-layer{position:absolute;inset:0;z-index:6;cursor:pointer;}
-
-/* ══ header شفاف ══ */
-#watch-header{position:absolute;top:0;left:0;right:0;z-index:20;
-  padding:0 16px;height:52px;display:flex;align-items:center;justify-content:space-between;
-  background:linear-gradient(to bottom,rgba(0,0,0,.7),transparent);
-  opacity:0;transition:opacity .3s;pointer-events:none;}
-#watch-header.visible{opacity:1;pointer-events:all;}
-.wh-back{width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.5);
+/* ═══ هيدر ═══ */
+.w-header{
+  display:flex;align-items:center;gap:14px;padding:0 20px;height:56px;
+  background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.back-btn{
+  width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.07);
   border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;
-  cursor:pointer;color:var(--white);font-size:.85rem;text-decoration:none;}
-.wh-title{font-family:'Amiri',serif;font-size:.9rem;color:var(--white);
-  text-align:center;flex:1;padding:0 10px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.wh-live-badge{display:flex;align-items:center;gap:4px;padding:3px 9px;
-  background:rgba(220,50,50,.85);border-radius:4px;font-size:.62rem;color:#fff;font-weight:700;}
-.wh-live-dot{width:5px;height:5px;border-radius:50%;background:#fff;animation:blink 1s infinite;}
+  cursor:pointer;text-decoration:none;transition:background .2s;flex-shrink:0;
+}
+.back-btn:hover{background:rgba(255,255,255,.15);}
+.back-btn svg{width:15px;height:15px;fill:var(--white);}
+.w-logo{font-family:'Amiri',serif;font-size:1rem;color:var(--gold);flex-shrink:0;}
+.w-title{flex:1;font-size:.9rem;color:var(--white);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.mode-badge{
+  padding:4px 12px;border-radius:20px;font-size:.68rem;font-weight:700;flex-shrink:0;
+  display:flex;align-items:center;gap:5px;
+}
+.mode-live{background:rgba(220,50,50,.15);border:1px solid rgba(220,50,50,.3);color:#ff6b6b;}
+.mode-rec{background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.25);color:var(--gold);}
+.live-dot{width:5px;height:5px;border-radius:50%;background:#ff4444;animation:blink 1s infinite;}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
 
-/* ══ controls ══ */
-#controls{position:absolute;bottom:0;left:0;right:0;z-index:20;
-  padding:0 16px 16px;
-  background:linear-gradient(to top,rgba(0,0,0,.85),transparent);
-  opacity:0;transition:opacity .3s;pointer-events:none;}
-#controls.visible{opacity:1;pointer-events:all;}
-.ctrl-row1{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-.ctrl-btn{width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.4);
-  border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;
-  cursor:pointer;flex-shrink:0;}
-.ctrl-btn svg{width:14px;height:14px;fill:var(--white);}
-.time-wrap{flex:1;display:flex;align-items:center;gap:8px;}
-.time-txt{font-size:.68rem;color:rgba(255,255,255,.7);white-space:nowrap;min-width:34px;}
-.seek-bar{flex:1;-webkit-appearance:none;height:3px;background:rgba(255,255,255,.2);
-  border-radius:2px;outline:none;cursor:pointer;}
-.seek-bar::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;
-  border-radius:50%;background:var(--gold);cursor:pointer;}
-.vol-wrap{display:flex;align-items:center;gap:6px;}
-.vol-bar{width:60px;-webkit-appearance:none;height:3px;background:rgba(255,255,255,.2);
-  border-radius:2px;outline:none;cursor:pointer;}
-.vol-bar::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;
-  border-radius:50%;background:#fff;cursor:pointer;}
-.ctrl-row2{display:flex;align-items:center;justify-content:space-between;}
-.lang-btn{display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;
-  background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.15);
-  color:rgba(255,255,255,.8);font-size:.75rem;font-family:'Tajawal',sans-serif;cursor:pointer;
-  transition:all .2s;}
-.lang-btn:hover{border-color:rgba(201,168,76,.4);color:var(--gold);}
-.fs-btn{width:32px;height:32px;border-radius:6px;background:rgba(0,0,0,.4);
-  border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;cursor:pointer;}
-.fs-btn svg{width:14px;height:14px;fill:var(--white);}
+/* ═══ المشغل ═══ */
+.player-area{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.video-wrap{
+  position:relative;background:#000;flex-shrink:0;
+  width:100%;aspect-ratio:16/9;max-height:calc(100vh - 56px - 180px);
+}
+.video-wrap iframe{width:100%;height:100%;border:none;}
+#sub-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10;}
 
-/* ══ لوحة اختيار اللغة ══ */
-.lang-overlay{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.6);
-  opacity:0;pointer-events:none;transition:opacity .3s;}
-.lang-overlay.open{opacity:1;pointer-events:all;}
-#lang-panel{position:fixed;bottom:0;left:0;right:0;z-index:101;
-  background:var(--bg3);border-top:1px solid var(--border);
-  border-radius:18px 18px 0 0;padding:16px 20px 36px;
-  transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);
-  max-height:70vh;overflow-y:auto;}
-#lang-panel.open{transform:translateY(0);}
-.lp-handle{width:36px;height:3px;background:rgba(255,255,255,.12);border-radius:2px;margin:0 auto 16px;}
-.lp-title{font-family:'Amiri',serif;font-size:1rem;color:var(--white);margin-bottom:6px;}
-.lp-tabs{display:flex;gap:8px;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:12px;}
-.lp-tab{padding:5px 14px;border-radius:20px;font-size:.74rem;
-  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);
-  color:rgba(255,255,255,.5);cursor:pointer;transition:all .2s;}
-.lp-tab.active{background:rgba(201,168,76,.1);border-color:rgba(201,168,76,.3);color:var(--gold);}
-.lp-section{display:none;}
-.lp-section.active{display:block;}
-.lp-langs{display:flex;flex-wrap:wrap;gap:8px;}
-.lp-lang{padding:7px 16px;border-radius:20px;font-size:.78rem;
-  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
-  color:rgba(240,236,228,.65);cursor:pointer;font-family:'Tajawal',sans-serif;transition:all .2s;}
-.lp-lang:hover{background:rgba(201,168,76,.08);border-color:rgba(201,168,76,.2);}
-.lp-lang.active{background:rgba(201,168,76,.12);border-color:rgba(201,168,76,.4);color:var(--gold);}
-.lp-lang.no-audio{opacity:.5;}
-.lp-orig{padding:7px 16px;border-radius:20px;font-size:.78rem;
-  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
-  color:var(--white);cursor:pointer;font-family:'Tajawal',sans-serif;margin-bottom:10px;}
-.lp-orig.active{background:rgba(201,168,76,.12);border-color:rgba(201,168,76,.4);color:var(--gold);}
-.lp-empty{font-size:.78rem;color:rgba(255,255,255,.3);padding:12px 0;}
+/* شريط التحكم */
+#yt-controls{
+  position:absolute;bottom:0;left:0;right:0;z-index:20;
+  padding:8px 14px;display:flex;align-items:center;gap:8px;
+  background:linear-gradient(transparent,rgba(0,0,0,.9));
+  opacity:0;transition:opacity .3s;
+}
+.video-wrap.show-ctrl #yt-controls{opacity:1;}
+.ctrl-btn{
+  width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:background .2s;flex-shrink:0;
+}
+.ctrl-btn:hover{background:rgba(255,255,255,.2);}
+.ctrl-btn svg{width:13px;height:13px;fill:#fff;}
+.ctrl-space{flex:1;}
+.vol-wrap{display:flex;align-items:center;gap:5px;}
+input[type=range].vol-bar{
+  -webkit-appearance:none;width:65px;height:3px;
+  background:rgba(255,255,255,.2);border-radius:2px;outline:none;cursor:pointer;
+}
+input[type=range].vol-bar::-webkit-slider-thumb{
+  -webkit-appearance:none;width:10px;height:10px;
+  border-radius:50%;background:var(--gold);cursor:pointer;
+}
+.fs-btn{
+  width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;cursor:pointer;
+}
+.fs-btn svg{width:13px;height:13px;fill:rgba(255,255,255,.8);}
 
-/* ══ toast ══ */
-.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(10px);
-  background:rgba(20,29,21,.95);border:1px solid var(--border);border-radius:8px;
-  padding:8px 18px;font-size:.76rem;color:var(--white);
-  opacity:0;transition:all .3s;pointer-events:none;z-index:300;white-space:nowrap;}
+/* ═══ لوحة المعلومات والترجمة ═══ */
+.info-panel{
+  flex:1;background:var(--bg2);border-top:1px solid var(--border);
+  overflow-y:auto;display:flex;flex-direction:column;
+}
+.info-top{padding:14px 18px;border-bottom:1px solid var(--border);}
+.info-tags{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;}
+.info-tag{
+  background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.2);
+  color:var(--gold);font-size:.65rem;padding:3px 10px;border-radius:20px;
+}
+.info-title-main{font-family:'Amiri',serif;font-size:1.05rem;color:var(--white);margin-bottom:4px;line-height:1.5;}
+.info-sub{font-size:.72rem;color:var(--silver);}
+
+/* ═══ قسم الترجمة ═══ */
+.trans-section{padding:14px 18px;flex:1;}
+.trans-section-title{
+  font-size:.72rem;color:var(--gold);letter-spacing:2px;margin-bottom:12px;
+  display:flex;align-items:center;gap:6px;
+}
+.trans-section-title::before{content:'';width:3px;height:14px;background:var(--gold);border-radius:2px;}
+
+/* تبويبات اللايف/المسجل */
+.mode-tabs{display:flex;gap:8px;margin-bottom:14px;}
+.mode-tab{
+  flex:1;padding:9px;border-radius:8px;text-align:center;cursor:pointer;
+  font-size:.78rem;border:1px solid var(--border);background:var(--bg3);color:var(--silver);
+  transition:all .2s;font-family:'Tajawal',sans-serif;
+}
+.mode-tab.active{background:rgba(201,168,76,.12);border-color:rgba(201,168,76,.4);color:var(--gold);}
+
+/* منطقة اللايف */
+#live-zone{display:none;}
+#live-zone.show{display:block;}
+.sync-status{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;background:var(--bg3);border-radius:8px;border:1px solid var(--border);
+  margin-bottom:12px;
+}
+.sync-info{font-size:.75rem;color:var(--silver);}
+.sync-timer{font-family:monospace;font-size:.8rem;color:var(--gold);}
+.sync-start-btn{
+  padding:7px 16px;border-radius:20px;cursor:pointer;font-family:'Tajawal',sans-serif;
+  font-size:.76rem;font-weight:700;border:none;transition:all .2s;
+  background:rgba(64,145,108,.2);border:1px solid rgba(64,145,108,.4);color:#52c991;
+}
+.sync-start-btn.running{
+  background:rgba(220,60,60,.15);border-color:rgba(220,60,60,.4);color:#e06060;
+}
+
+/* منطقة المسجل */
+#rec-zone{display:none;}
+#rec-zone.show{display:block;}
+.offset-info{
+  font-size:.72rem;color:var(--silver);background:var(--bg3);
+  padding:10px 14px;border-radius:8px;border:1px solid var(--border);margin-bottom:12px;
+  line-height:1.8;
+}
+.offset-info span{color:var(--gold);}
+
+/* اختيار الصوت والترجمة */
+.picker-row{display:flex;gap:8px;margin-bottom:12px;}
+.picker{flex:1;}
+.picker label{display:block;font-size:.65rem;color:rgba(255,255,255,.35);margin-bottom:5px;letter-spacing:1px;}
+.picker-opts{display:flex;flex-wrap:wrap;gap:6px;}
+.opt-btn{
+  padding:6px 13px;border-radius:20px;font-size:.74rem;cursor:pointer;
+  border:1px solid var(--border);background:var(--bg3);color:var(--silver);
+  transition:all .2s;font-family:'Tajawal',sans-serif;white-space:nowrap;
+}
+.opt-btn:hover{border-color:rgba(201,168,76,.3);color:var(--white);}
+.opt-btn.active{background:rgba(201,168,76,.15);border-color:var(--gold);color:var(--gold);}
+
+/* رفع الملفات */
+.upload-row{display:flex;gap:8px;margin-bottom:10px;}
+.upload-item{flex:1;background:var(--bg3);border:1px dashed rgba(255,255,255,.1);border-radius:8px;padding:10px;text-align:center;cursor:pointer;transition:all .2s;}
+.upload-item:hover{border-color:rgba(201,168,76,.3);}
+.upload-item label{cursor:pointer;font-size:.72rem;color:var(--silver);display:block;}
+.upload-item .upload-icon{font-size:1.2rem;margin-bottom:4px;}
+.upload-item .upload-name{font-size:.65rem;color:var(--green-lt);margin-top:3px;}
+
+/* toast */
+.toast{
+  position:fixed;bottom:16px;left:50%;transform:translateX(-50%) translateY(6px);
+  background:var(--bg2);border:1px solid var(--border);color:var(--white);
+  padding:6px 18px;border-radius:6px;font-size:.78rem;z-index:500;
+  opacity:0;transition:all .22s;pointer-events:none;
+}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-/* ══ black screen (موقوف / تحميل) ══ */
-#black-screen{position:absolute;inset:0;z-index:8;background:#000;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
-  cursor:pointer;}
-#black-screen.hide{display:none;}
-#black-screen.paused #bs-play-btn{background:rgba(255,255,255,.08);}
-#black-screen span{font-size:.8rem;color:rgba(255,255,255,.4);letter-spacing:1px;}
-#bs-play-btn:hover{background:rgba(255,255,255,.22) !important;}
-#yt-frame{opacity:0;transition:opacity .3s;}
-
-/* ══ حالة الاتصال OBS ══ */
-#obs-status{position:absolute;top:60px;right:12px;z-index:15;
-  font-size:.65rem;color:rgba(255,255,255,.4);display:none;}
-.obs-lang-dot{display:inline-block;width:5px;height:5px;border-radius:50%;
-  background:#666;margin-left:4px;}
-.obs-lang-dot.on{background:#22c55e;}
+/* polyfill roundRect patch */
 </style>
 </head>
 <body>
 
-<!-- loader -->
-<div id="loader">
-  <div class="ld-ring"><span class="ld-icon">🕌</span></div>
-  <div class="ld-txt" id="ld-txt">جاري التحميل...</div>
-</div>
-
-<!-- لا يوجد بث -->
-<div id="no-live">
-  <div class="no-live-icon">📡</div>
-  <div class="no-live-title" id="no-live-title">لا يوجد بث حالياً</div>
-  <div class="no-live-sub" id="no-live-sub">ستبدأ البث قريباً — يُرجى الانتظار</div>
-  <div class="no-live-time" id="no-live-time"></div>
+<!-- هيدر -->
+<div class="w-header">
+  <a href="index.html" class="back-btn">
+    <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+  </a>
+  <div class="w-logo">الإثراء الديني</div>
+  <div class="w-title" id="page-title">خطبة الجمعة — المسجد الحرام</div>
+  <div class="mode-badge mode-live" id="mode-badge">
+    <div class="live-dot"></div> مباشر
+  </div>
 </div>
 
 <!-- المشغل -->
-<div id="player-wrap" style="display:none">
-  <div id="yt-frame"></div>
-  <canvas id="sub-canvas"></canvas>
-  <div id="click-layer" onclick="togglePlay()"></div>
-  <div id="black-screen" onclick="tapToPlay()">
-    <div id="bs-play-btn" style="width:72px;height:72px;border-radius:50%;
-      background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.25);
-      display:flex;align-items:center;justify-content:center;margin-bottom:10px;
-      transition:background .2s;cursor:pointer;">
-      <svg viewBox="0 0 24 24" style="width:32px;height:32px;fill:#fff;margin-right:-3px">
-        <path d="M8 5v14l11-7z"/>
-      </svg>
-    </div>
-    <span id="bs-txt">اضغط للتشغيل</span>
-  </div>
-  <div id="obs-status"></div>
+<div class="player-area">
+  <div class="video-wrap" id="videoWrap">
+    <div id="yt-player"></div>
+    <canvas id="sub-canvas"></canvas>
 
-  <!-- header -->
-  <div id="watch-header">
-    <a class="wh-back" href="index.html">←</a>
-    <div class="wh-title" id="watch-title">—</div>
-    <div class="wh-live-badge" id="live-badge" style="display:none">
-      <span class="wh-live-dot"></span> LIVE
-    </div>
-  </div>
-
-  <!-- controls -->
-  <div id="controls">
-    <div class="ctrl-row1">
+    <div id="yt-controls">
       <div class="ctrl-btn" onclick="togglePlay()">
         <svg id="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
       </div>
-      <div class="time-wrap">
-        <span class="time-txt" id="time-cur">0:00</span>
-        <input type="range" class="seek-bar" id="seek-bar" min="0" max="100" value="0"
-          oninput="seekTo(this.value)" style="direction:ltr">
-        <span class="time-txt" id="time-dur">0:00</span>
-      </div>
+      <div class="ctrl-space"></div>
       <div class="vol-wrap">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="rgba(255,255,255,.6)">
-          <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
-        </svg>
-        <input type="range" class="vol-bar" id="vol-bar" min="0" max="100" value="90"
-          oninput="setVol(this.value)" style="direction:ltr">
+        <span style="font-size:.8rem">🔊</span>
+        <input type="range" class="vol-bar" id="vol-bar" min="0" max="100" value="85" oninput="setVol(this.value)" style="direction:ltr">
       </div>
-    </div>
-    <div class="ctrl-row2">
-      <button class="lang-btn" onclick="openLangPanel()">
-        🌐 <span id="lang-btn-txt">اختر اللغة</span>
-      </button>
       <div class="fs-btn" onclick="toggleFS()">
-        <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+        <svg id="fs-icon" viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
       </div>
     </div>
   </div>
-</div>
 
-<!-- لوحة اللغة -->
-<div class="lang-overlay" id="lang-overlay" onclick="closeLangPanel()"></div>
-<div id="lang-panel">
-  <div class="lp-handle"></div>
-  <div class="lp-title">🌐 اختر اللغة</div>
-  <div class="lp-tabs">
-    <div class="lp-tab active" id="tab-sub" onclick="switchLpTab('sub',this)">💬 ترجمة نصية</div>
-    <div class="lp-tab" id="tab-audio" onclick="switchLpTab('audio',this)">🔊 ترجمة صوتية</div>
-  </div>
-  <div class="lp-section active" id="sec-sub">
-    <div class="lp-langs" id="sub-langs"></div>
-  </div>
-  <div class="lp-section" id="sec-audio">
-    <div class="lp-langs" id="audio-langs"></div>
+  <!-- لوحة المعلومات -->
+  <div class="info-panel">
+    <div class="info-top">
+      <div class="info-tags">
+        <span class="info-tag" id="content-tag">خطبة</span>
+        <span class="info-tag">المسجد الحرام</span>
+      </div>
+      <div class="info-title-main" id="content-title">خطبة الجمعة — محاسبة النفس وتزكيتها</div>
+      <div class="info-sub">د. أسامة بن عبدالله خياط • 19-02-1446هـ</div>
+    </div>
+
+    <div class="trans-section">
+      <div class="trans-section-title">الترجمة</div>
+
+      <!-- تبويبات -->
+      <div class="mode-tabs">
+        <div class="mode-tab active" id="tab-live" onclick="switchMode('live')">📡 ترجمة لايف</div>
+        <div class="mode-tab" id="tab-rec" onclick="switchMode('rec')">📼 ترجمة تسجيل</div>
+      </div>
+
+      <!-- ═══ منطقة اللايف ═══ -->
+      <div id="live-zone" class="show">
+
+        <!-- رفع الملفات -->
+        <div class="upload-row">
+          <div class="upload-item" onclick="document.getElementById('f-audio1').click()">
+            <div class="upload-icon">🎵</div>
+            <label for="f-audio1">صوت اللغة 1</label>
+            <input type="file" id="f-audio1" accept="audio/*" style="display:none" onchange="loadLiveFile('audio',0,this)">
+            <div class="upload-name" id="fn-audio0">لم يُرفع</div>
+          </div>
+          <div class="upload-item" onclick="document.getElementById('f-sub1').click()">
+            <div class="upload-icon">📄</div>
+            <label for="f-sub1">ترجمة اللغة 1</label>
+            <input type="file" id="f-sub1" accept=".ass,.srt" style="display:none" onchange="loadLiveFile('sub',0,this)">
+            <div class="upload-name" id="fn-sub0">لم يُرفع</div>
+          </div>
+          <div class="upload-item" onclick="document.getElementById('f-audio2').click()">
+            <div class="upload-icon">🎵</div>
+            <label for="f-audio2">صوت اللغة 2</label>
+            <input type="file" id="f-audio2" accept="audio/*" style="display:none" onchange="loadLiveFile('audio',1,this)">
+            <div class="upload-name" id="fn-audio1">لم يُرفع</div>
+          </div>
+          <div class="upload-item" onclick="document.getElementById('f-sub2').click()">
+            <div class="upload-icon">📄</div>
+            <label for="f-sub2">ترجمة اللغة 2</label>
+            <input type="file" id="f-sub2" accept=".ass,.srt" style="display:none" onchange="loadLiveFile('sub',1,this)">
+            <div class="upload-name" id="fn-sub1">لم يُرفع</div>
+          </div>
+        </div>
+
+        <!-- تسمية اللغات -->
+        <div class="picker-row" style="margin-bottom:10px">
+          <div class="picker">
+            <label>اسم اللغة 1</label>
+            <input id="live-name0" placeholder="مثال: الإنجليزية" style="background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:7px;width:100%;font-family:'Tajawal',sans-serif;font-size:.78rem;outline:none;">
+          </div>
+          <div class="picker">
+            <label>اسم اللغة 2</label>
+            <input id="live-name1" placeholder="مثال: الأردية" style="background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:6px 10px;border-radius:7px;width:100%;font-family:'Tajawal',sans-serif;font-size:.78rem;outline:none;">
+          </div>
+        </div>
+
+        <!-- زر المشرف -->
+        <div class="sync-status">
+          <div>
+            <div class="sync-info" id="sync-info">اضغط الزر في لحظة بدء الكلمة</div>
+            <div class="sync-timer" id="sync-timer"></div>
+          </div>
+          <button class="sync-start-btn" id="sync-btn" onclick="toggleSync()">▶ ابدأ التزامن</button>
+        </div>
+
+        <!-- اختيار المشاهد -->
+        <div class="picker-row">
+          <div class="picker">
+            <label>🔊 الصوت</label>
+            <div class="picker-opts" id="audio-opts">
+              <button class="opt-btn active" onclick="setAudio(-2,this)">الأصلي</button>
+              <button class="opt-btn" onclick="setAudio(-1,this)">كتم</button>
+            </div>
+          </div>
+        </div>
+        <div class="picker">
+          <label>💬 الترجمة النصية</label>
+          <div class="picker-opts" id="sub-opts">
+            <button class="opt-btn active" onclick="setSub(-1,this)">إيقاف</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ منطقة التسجيل ═══ -->
+      <div id="rec-zone">
+
+        <!-- رفع ملف ASS -->
+        <div class="upload-row">
+          <div class="upload-item" onclick="document.getElementById('f-rec-sub').click()">
+            <div class="upload-icon">📄</div>
+            <label for="f-rec-sub">ملف الترجمة ASS / SRT</label>
+            <input type="file" id="f-rec-sub" accept=".ass,.srt" style="display:none" onchange="loadRecSub(this)">
+            <div class="upload-name" id="fn-rec-sub">لم يُرفع</div>
+          </div>
+        </div>
+
+        <div class="offset-info">
+          أدخل الوقت الذي تبدأ فيه الترجمة في التسجيل.<br>
+          مثال: لو الكلمة بدأت بعد <span>25 دقيقة</span> من بداية الفيديو، أدخل <span>25:00</span>
+        </div>
+
+        <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:12px">
+          <div style="flex:1">
+            <label style="font-size:.65rem;color:rgba(255,255,255,.35);display:block;margin-bottom:5px;letter-spacing:1px">وقت بدء الترجمة في التسجيل</label>
+            <input id="rec-offset" placeholder="مثال: 25:30" style="background:var(--bg3);border:1px solid var(--border);color:var(--white);padding:8px 12px;border-radius:7px;width:100%;font-family:monospace;font-size:.82rem;outline:none;">
+          </div>
+          <button onclick="applyRecOffset()" style="padding:8px 16px;background:rgba(64,145,108,.2);border:1px solid rgba(64,145,108,.4);color:#52c991;border-radius:7px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.78rem;white-space:nowrap;">
+            ✓ تطبيق
+          </button>
+        </div>
+
+        <div class="picker">
+          <label>💬 الترجمة النصية</label>
+          <div class="picker-opts">
+            <button class="opt-btn active" id="rec-sub-off" onclick="setRecSub(false,this)">إيقاف</button>
+            <button class="opt-btn" id="rec-sub-on" onclick="setRecSub(true,this)">تشغيل</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ══ Supabase ══
-var SUPA_URL = 'https://umowxqalocwyrnvcuhyh.supabase.co';
-var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtb3d4cWFsb2N3eXJudmN1aHloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNzMyMDIsImV4cCI6MjA4ODY0OTIwMn0.Tqaz8x6aKmdiBWYXEx4ujNdk0kiJgyRJ_Kk2OS-Yv0E';
-
-async function supa(table, params) {
-  var url = SUPA_URL + '/rest/v1/' + table + '?' + (params||'');
-  var r = await fetch(url, {
-    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
-  });
-  if (!r.ok) throw new Error(await r.text());
-  return r.json();
+// ══ polyfill ══
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r) {
+    this.beginPath();
+    this.moveTo(x+r,y);this.lineTo(x+w-r,y);this.quadraticCurveTo(x+w,y,x+w,y+r);
+    this.lineTo(x+w,y+h-r);this.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+    this.lineTo(x+r,y+h);this.quadraticCurveTo(x,y+h,x,y+h-r);
+    this.lineTo(x,y+r);this.quadraticCurveTo(x,y,x+r,y);this.closePath();
+  };
 }
 
-// ══ حالة ══
-var ST = {
-  mode: 'none',       // none | sync | obs
-  syncStart: null,    // timestamp بدء التزامن
-  subDelay: 0,        // تأخير الترجمة النصية (ثواني)
-  audioDelay: 0,      // تأخير الترجمة الصوتية (ثواني)
-  session: null,
-  langs: [],          // لغات البث
-  playing: false,
-  vol: 90,
-  activeSub: -1,      // إندكس الترجمة النصية (-1=إيقاف)
-  activeAudio: -2,    // -2=أصلي، -1=كتم، i=لغة
-  feedback: 0,
-  rafId: null,
-  subs: [],           // [{name, events}]
-  audioEls: {},       // idx -> Audio
-  obsWs: {},          // idx -> WebSocket
-  obsTexts: {},       // idx -> currentText
-  ctrlTimer: null,
-  isLive: false,
-  contentId: null
+// ══ حالة عامة ══
+var ST = { playing:false, vol:85, mode:'live', rafId:null, ctrlTimer:null };
+
+// ══ حالة اللايف ══
+var LIVE = {
+  langs:[
+    {name:'',audioBlob:null,audioEl:null,subEvents:[]},
+    {name:'',audioBlob:null,audioEl:null,subEvents:[]}
+  ],
+  sync:{running:false,startTime:null,interval:null},
+  audioIdx:-2, subIdx:-1
 };
 
-var ytPlayer = null;
-var ytReady = false;
+// ══ حالة التسجيل ══
+var REC = {
+  subEvents:[], offset:0, showSub:false
+};
 
-// ══ YouTube API ══
+// ══ يوتيوب ══
+var ytPlayer=null, ytReady=false;
 window.onYouTubeIframeAPIReady = function() {
-  ytReady = true;
-  if (ST._pendingId) { createYTPlayer(ST._pendingId); ST._pendingId = null; }
+  ytReady=true;
+  var params = new URLSearchParams(window.location.search);
+  var vid = params.get('v') || 'jfKfPfyJRdk';
+  var mode = params.get('mode') || 'live';
+  ST.mode = mode;
+  initUI(mode, params);
+  createPlayer(vid, mode);
 };
 
-function loadYTApi() {
-  if (window.YT) { ytReady = true; return; }
-  var s = document.createElement('script');
-  s.src = 'https://www.youtube.com/iframe_api';
-  document.head.appendChild(s);
-}
-
-function createYTPlayer(videoId) {
-  document.getElementById('yt-frame').innerHTML = '';
-  ytPlayer = new YT.Player('yt-frame', {
-    videoId: videoId,
-    playerVars: { autoplay:1, controls:0, rel:0, modestbranding:1,
-                  iv_load_policy:3, disablekb:1, fs:0, playsinline:1 },
-    events: {
-      onReady: function(e) {
+function createPlayer(vid, mode) {
+  ytPlayer = new YT.Player('yt-player', {
+    videoId: vid,
+    playerVars:{autoplay:1,controls:0,rel:0,modestbranding:1,iv_load_policy:3,disablekb:1,fs:0,playsinline:1},
+    events:{
+      onReady:function(e){
         e.target.setVolume(ST.vol);
         e.target.playVideo();
-        ST.playing = true;
-        updatePlayIcon();
-        startLoop();
-      },
-      onStateChange: function(e) {
-        if (e.data === YT.PlayerState.PLAYING) {
-          ST.playing=true; updatePlayIcon();
-          document.getElementById('black-screen').classList.add('hide');
-          document.getElementById('black-screen').classList.remove('paused');
-          document.getElementById('yt-frame').style.opacity='1';
-          if (ST.activeAudio >= 0 && (ST.mode !== 'sync' || ST.syncStart)) {
-            var _pa=ST.audioEls[ST.activeAudio];
-            if (_pa) {
-              var _pat=Math.max(0,(ytPlayer&&ytPlayer.getCurrentTime?ytPlayer.getCurrentTime():0)-ST.audioDelay);
-              if(typeof _pa.seekTo==='function'){_pa.seekTo(_pat,true);_pa.playVideo();}
-              else{_pa.currentTime=_pat;_pa.play().catch(function(){});}
-            }
-          }
-        }
-        if (e.data === YT.PlayerState.PAUSED) {
-          ST.playing=false; updatePlayIcon();
-          document.getElementById('bs-txt').textContent = 'موقوف مؤقتاً';
-          document.getElementById('black-screen').classList.remove('hide');
-          document.getElementById('black-screen').classList.add('paused');
-          Object.keys(ST.audioEls).forEach(function(i){ var _a=ST.audioEls[i]; if(!_a)return; if(typeof _a.pauseVideo==='function') _a.pauseVideo(); else _a.pause(); });
-        }
-        if (e.data === YT.PlayerState.ENDED) {
-          ST.playing=false; updatePlayIcon();
-          document.getElementById('bs-txt').textContent = 'انتهى الفيديو';
-          document.getElementById('black-screen').classList.remove('hide');
-          Object.keys(ST.audioEls).forEach(function(i){ var _a=ST.audioEls[i]; if(!_a)return; if(typeof _a.pauseVideo==='function') _a.pauseVideo(); else _a.pause(); });
-        }
+        ST.playing=true; updatePlayIcon(); startLoop(); startCtrlHide();
       }
     }
   });
 }
 
-// ══ تهيئة ══
-window.addEventListener('load', function() {
-  loadYTApi();
-  initWatch();
-});
-
-async function initWatch() {
-  var params = new URLSearchParams(window.location.search);
-  var pageId = params.get('page');
-  if (pageId) {
-    await loadPage(pageId);
+function initUI(mode, params) {
+  if (mode==='live') {
+    document.getElementById('tab-live').classList.add('active');
+    document.getElementById('tab-rec').classList.remove('active');
+    document.getElementById('live-zone').classList.add('show');
+    document.getElementById('rec-zone').classList.remove('show');
+    document.getElementById('mode-badge').className='mode-badge mode-live';
+    document.getElementById('mode-badge').innerHTML='<div class="live-dot"></div> مباشر';
   } else {
-    // بدون ID — ابحث عن أي صفحة جارية
-    await checkLivePage();
+    document.getElementById('tab-rec').classList.add('active');
+    document.getElementById('tab-live').classList.remove('active');
+    document.getElementById('rec-zone').classList.add('show');
+    document.getElementById('live-zone').classList.remove('show');
+    document.getElementById('mode-badge').className='mode-badge mode-rec';
+    document.getElementById('mode-badge').textContent='📼 تسجيل';
+  }
+  var title = params.get('title') || 'خطبة الجمعة — المسجد الحرام';
+  document.getElementById('page-title').textContent = title;
+  document.getElementById('content-title').textContent = title;
+}
+
+// ══ تبديل الوضع ══
+function switchMode(m) {
+  ST.mode = m;
+  document.getElementById('tab-live').classList.toggle('active', m==='live');
+  document.getElementById('tab-rec').classList.toggle('active', m==='rec');
+  document.getElementById('live-zone').classList.toggle('show', m==='live');
+  document.getElementById('rec-zone').classList.toggle('show', m==='rec');
+  clearCanvas();
+}
+
+// ══ رفع ملفات اللايف ══
+function loadLiveFile(type, idx, inp) {
+  if (!inp.files[0]) return;
+  var f = inp.files[0];
+  if (type==='audio') {
+    LIVE.langs[idx].audioBlob = URL.createObjectURL(f);
+    document.getElementById('fn-audio'+idx).textContent = f.name;
+    // أضف خيار الصوت
+    addAudioOpt(idx);
+  } else {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      LIVE.langs[idx].subEvents = f.name.endsWith('.srt') ? parseSRT(e.target.result) : parseASS(e.target.result);
+      document.getElementById('fn-sub'+idx).textContent = f.name + ' ('+LIVE.langs[idx].subEvents.length+' سطر)';
+      addSubOpt(idx);
+    };
+    reader.readAsText(f,'UTF-8');
   }
 }
 
-// ══ تحميل صفحة بـ ID ══
-async function loadPage(id) {
-  try {
-    setLoaderTxt('جاري تحميل الصفحة...');
-    var data = await supa('pages', 'select=*&id=eq.' + id + '&limit=1');
-    if (!data || !data[0]) { showNoLive('الصفحة غير موجودة', ''); return; }
-    var page = data[0];
-
-    var langs = await supa('page_langs', 'select=*&page_id=eq.' + id + '&order=sort_order');
-    ST.langs = langs || [];
-    ST.session = page;
-    ST.feedback = page.feedback || 0;
-    ST.subDelay   = parseFloat(page.sub_delay   || 0);
-    ST.audioDelay = parseFloat(page.audio_delay || 0);
-
-    // تحديد الوضع
-    if (page.status === 'upcoming') {
-      hideLoader();
-      showNoLive('يبدأ البث قريباً', page.title_ar || '');
-      startRealtimePage(id);
-      return;
-    }
-    if (page.status === 'ended' || page.status === 'recorded') {
-      ST.mode = 'recorded';
-    } else {
-      ST.mode = page.category || 'sync'; // live → sync أو obs
-    }
-
-    document.getElementById('watch-title').textContent = page.title_ar || page.title_en || 'بث مباشر';
-    var isLive = page.status === 'live';
-    document.getElementById('live-badge').style.display = isLive ? 'flex' : 'none';
-
-    if (ST.mode === 'sync' || ST.mode === 'recorded') {
-      await loadSubtitleFiles();
-      ST.langs.forEach(function(l, i) {
-        if (l.audio_url) { var _a=new Audio(l.audio_url); _a.volume=0; _a.preload='auto'; ST.audioEls[i]=_a; }
-        else if (l.yt_audio_url) loadYTAudio(i, l.yt_audio_url);
-        else if (l.icecast_url)  loadIcecast(i, l.icecast_url);
-      });
-    }
-    if (ST.mode === 'sync' && page.sync_start) {
-      ST.syncStart = new Date(page.sync_start).getTime();
-    }
-    buildLangPanel();
-    // sync — اختر أول لغة عندها ترجمة تلقائياً
-    if (ST.mode === 'sync') {
-      for (var _si=0; _si<ST.langs.length; _si++) {
-        if (ST.subs[_si] && ST.subs[_si].events && ST.subs[_si].events.length) { setSub(_si); break; }
-      }
-    }
-    showPlayer();
-    startCtrlHide();
-
-    var ytId = extractYTId(page.yt_url);
-    if (ytId) {
-      if (ytReady) createYTPlayer(ytId);
-      else ST._pendingId = ytId;
-    }
-    if (ST.mode === 'obs') connectAllOBS();
-
-    hideLoader();
-    if (isLive) startRealtimePage(id);
-  } catch(e) {
-    hideLoader();
-    showNoLive('خطأ في التحميل', e.message);
+function addAudioOpt(idx) {
+  var el = document.getElementById('ao-lang'+idx);
+  if (!el) {
+    var b = document.createElement('button');
+    b.className='opt-btn'; b.id='ao-lang'+idx;
+    var name = document.getElementById('live-name'+idx).value || 'اللغة '+(idx+1);
+    b.textContent='🔊 '+name;
+    b.onclick=(function(i,btn){return function(){setAudio(i,btn);};})(idx,b);
+    document.getElementById('audio-opts').appendChild(b);
+  }
+}
+function addSubOpt(idx) {
+  var el = document.getElementById('so-lang'+idx);
+  if (!el) {
+    var b = document.createElement('button');
+    b.className='opt-btn'; b.id='so-lang'+idx;
+    var name = document.getElementById('live-name'+idx).value || 'اللغة '+(idx+1);
+    b.textContent='💬 '+name;
+    b.onclick=(function(i,btn){return function(){setSub(i,btn);};})(idx,b);
+    document.getElementById('sub-opts').appendChild(b);
   }
 }
 
-// ══ بحث عن صفحة جارية ══
-async function checkLivePage() {
-  try {
-    setLoaderTxt('جاري الاتصال...');
-    var data = await supa('pages', 'select=*&status=eq.live&order=updated_at.desc&limit=1');
-    if (!data || !data[0]) {
-      hideLoader();
-      showNoLive('لا يوجد بث مباشر حالياً', 'سيبدأ البث قريباً — يُرجى الانتظار');
-      startPollingLive();
-      return;
-    }
-    await loadPage(data[0].id);
-  } catch(e) {
-    hideLoader();
-    showNoLive('خطأ في الاتصال', 'تأكد من اتصالك بالإنترنت');
-  }
-}
-
-// ══ تم نقل المنطق إلى loadPage و checkLivePage ══
-
-// ══ تحميل ملفات الترجمة ══
-async function loadSubtitleFiles() {
-  ST.subs = [];
-  for (var i = 0; i < ST.langs.length; i++) {
-    var l = ST.langs[i];
-    var url = l.subtitle_url;
-    if (!url) { ST.subs.push(null); continue; }
-    try {
-      var r = await fetch(url);
-      var txt = await r.text();
-      var isSRT = url.toLowerCase().includes('.srt');
-      var events = isSRT ? parseSRT(txt) : parseASS(txt);
-      ST.subs.push({ name: l.name, events: events });
-    } catch(e) { ST.subs.push(null); }
-  }
-}
-
-// ══ بناء لوحة اللغات ══
-function buildLangPanel() {
-  var subEl = document.getElementById('sub-langs');
-  var audEl = document.getElementById('audio-langs');
-  subEl.innerHTML = ''; audEl.innerHTML = '';
-
-  var hasAudio = false, hasSub = false;
-
-  // زر الصوت الأصلي
-  var origAud = document.createElement('button');
-  origAud.className = 'lp-orig active'; origAud.id = 'lp-orig-audio';
-  origAud.textContent = '🎙 الصوت الأصلي';
-  origAud.onclick = function() { setAudio(-2); closeLangPanel(); };
-  audEl.appendChild(origAud);
-
-  ST.langs.forEach(function(l, i) {
-    // ترجمة نصية
-    if (ST.subs[i] || ST.mode === 'obs') {
-      hasSub = true;
-      var b = document.createElement('button');
-      b.className = 'lp-lang'; b.id = 'lp-sub-' + i;
-      b.textContent = l.name || ('لغة ' + (i+1));
-      b.onclick = (function(idx){ return function(){ setSub(idx); closeLangPanel(); }; })(i);
-      subEl.appendChild(b);
-    }
-
-    // ترجمة صوتية
-    if (l.yt_audio_url || l.icecast_url || l.audio_url) {
-      hasAudio = true;
-      var ba = document.createElement('button');
-      ba.className = 'lp-lang'; ba.id = 'lp-aud-' + i;
-      ba.textContent = l.name || ('لغة ' + (i+1));
-      ba.onclick = (function(idx){ return function(){ setAudio(idx); closeLangPanel(); }; })(i);
-      audEl.appendChild(ba);
-    }
-  });
-
-  // زر إيقاف الترجمة
-  var offSub = document.createElement('button');
-  offSub.className = 'lp-lang'; offSub.id = 'lp-sub-off';
-  offSub.textContent = '🚫 إيقاف الترجمة';
-  offSub.onclick = function() { setSub(-1); closeLangPanel(); };
-  subEl.appendChild(offSub);
-
-  if (!hasSub) subEl.innerHTML = '<div class="lp-empty">لا تتوفر ترجمة نصية</div>';
-  if (!hasAudio) audEl.innerHTML += '<div class="lp-empty" style="margin-top:8px">لا تتوفر ترجمة صوتية</div>';
-
-  // إخفاء تبويب الصوت إن لم يكن فيه محتوى
-  document.getElementById('tab-audio').style.display = hasAudio ? '' : 'none';
-}
-
-// ══ OBS WebSocket ══
-function connectAllOBS() {
-  var port = ST.session.obs_port || ST.session.obsPort || '4455';
-  var pass = ST.session.obs_pass || ST.session.obsPass || '';
-  ST.langs.forEach(function(l, i) {
-    if (!l.ip) return;
-    connectOBS(i, l.ip, port, pass, l.obs_source);
-    if (l.yt_audio_url) loadYTAudio(i, l.yt_audio_url);
-    else if (l.icecast_url) loadIcecast(i, l.icecast_url);
-  });
-}
-
-function connectOBS(idx, ip, port, pass, source) {
-  var url = 'ws://' + ip + ':' + port;
-  var ws;
-  try { ws = new WebSocket(url); } catch(e) { return; }
-  ST.obsWs[idx] = ws;
-  var reqId = 0;
-
-  ws.onopen = function() {
-    ws.send(JSON.stringify({ op:1, d:{ rpcVersion:1 } }));
-    updateObsDot(idx, true);
-  };
-  ws.onmessage = function(e) {
-    var msg = JSON.parse(e.data);
-    if (msg.op === 2) {
-      // hello — أرسل identify
-      ws.send(JSON.stringify({ op:3, d:{ rpcVersion:1 } }));
-    }
-    if (msg.op === 5 && msg.d && msg.d.eventType === 'InputSettingsChanged') {
-      var settings = msg.d.eventData && msg.d.eventData.inputSettings;
-      if (settings && settings.text !== undefined) {
-        ST.obsTexts[idx] = settings.text || '';
-        if (ST.activeSub === idx) drawSubText(ST.obsTexts[idx]);
-      }
-    }
-  };
-  ws.onclose = function() {
-    updateObsDot(idx, false);
-    setTimeout(function() { connectOBS(idx, ip, port, pass, source); }, 5000);
-  };
-
-  // polling كل 100ms
-  var poll = setInterval(function() {
-    if (ws.readyState !== 1) { clearInterval(poll); return; }
-    if (!source) return;
-    reqId++;
-    ws.send(JSON.stringify({
-      op:6, d:{ requestType:'GetInputSettings', requestId:'r'+reqId, requestData:{ inputName: source } }
-    }));
-  }, 100);
-
-  ws.addEventListener('message', function(e) {
-    var msg = JSON.parse(e.data);
-    if (msg.op === 7 && msg.d && msg.d.responseData) {
-      var t = msg.d.responseData.inputSettings && msg.d.responseData.inputSettings.text;
-      if (t !== undefined) {
-        ST.obsTexts[idx] = t || '';
-        if (ST.activeSub === idx) drawSubText(ST.obsTexts[idx]);
-      }
-    }
-  });
-}
-
-function updateObsDot(idx, on) {
-  var el = document.getElementById('obs-dot-' + idx);
-  if (el) el.className = 'obs-lang-dot' + (on?' on':'');
-}
-
-function loadYTAudio(idx, url) {
-  var id = extractYTId(url); if (!id) return;
-  var iframe = document.createElement('iframe');
-  iframe.src = 'https://www.youtube.com/embed/' + id + '?autoplay=0&controls=0';
-  iframe.style.display = 'none'; iframe.id = 'yt-audio-' + idx;
-  document.body.appendChild(iframe);
-  var ytAud = null;
-  var t = setInterval(function() {
-    if (!window.YT || !window.YT.Player) return;
-    clearInterval(t);
-    ytAud = new YT.Player('yt-audio-' + idx, {
-      events: { onReady: function(e) {
-        e.target.setVolume(0);
-        ST.audioEls[idx] = e.target;
-      }}
+// ══ زر التزامن (المشرف) ══
+function toggleSync() {
+  var S = LIVE.sync;
+  if (!S.running) {
+    S.running=true; S.startTime=Date.now();
+    // شغّل كل الأصوات (مكتومة إلا المختار)
+    LIVE.langs.forEach(function(l,i){
+      if (!l.audioBlob) return;
+      l.audioEl = new Audio(l.audioBlob);
+      l.audioEl.volume = (LIVE.audioIdx===i) ? ST.vol/100 : 0;
+      l.audioEl.play().catch(function(){});
     });
-  }, 500);
-}
-
-function loadIcecast(idx, url) {
-  var a = new Audio(url);
-  a.volume = 0;
-  ST.audioEls[idx] = a;
-}
-
-// ══ التحكم بالصوت ══
-function setAudio(idx) {
-  ST.activeAudio = idx;
-  // أوقف كل الصوتيات
-  Object.keys(ST.audioEls).forEach(function(i) {
-    var el = ST.audioEls[i];
-    if (!el) return;
-    if (typeof el.pauseVideo === 'function') { el.pauseVideo(); el.setVolume(0); }
-    else { el.pause(); el.volume = 0; }
-  });
-  if (idx === -2) {
-    // أصلي
-    if (ytPlayer && ytPlayer.setVolume) ytPlayer.setVolume(ST.vol);
-    document.getElementById('lang-btn-txt').textContent = 'الصوت الأصلي';
-    updateLangBtnHighlight('audio', -2);
-  } else if (idx === -1) {
-    if (ytPlayer && ytPlayer.setVolume) ytPlayer.setVolume(0);
-    document.getElementById('lang-btn-txt').textContent = 'صوت مكتوم';
-    updateLangBtnHighlight('audio', -1);
+    applyAudioChoice();
+    // عداد
+    S.interval = setInterval(function(){
+      if (!S.startTime) return;
+      var s=Math.floor((Date.now()-S.startTime)/1000);
+      var m=Math.floor(s/60); s=s%60;
+      document.getElementById('sync-timer').textContent=m+':'+(s<10?'0':'')+s;
+    },1000);
+    document.getElementById('sync-btn').classList.add('running');
+    document.getElementById('sync-btn').textContent='⏹ إيقاف';
+    document.getElementById('sync-info').textContent='جارٍ التزامن...';
+    toast('▶ بدأ التزامن');
   } else {
-    var el = ST.audioEls[idx];
-    if (el) {
-      var _at = Math.max(0, (ytPlayer&&ytPlayer.getCurrentTime?ytPlayer.getCurrentTime():0) - ST.audioDelay);
-      if (typeof el.seekTo === 'function') { el.seekTo(_at,true); el.setVolume(ST.vol); el.playVideo(); }
-      else { el.currentTime=_at; el.volume=ST.vol/100; if(ST.playing) el.play().catch(function(){}); }
-    }
-    // feedback — الصوت الأصلي في الخلفية
-    if (ytPlayer) {
-      if (ST.feedback <= 0) ytPlayer.mute();
-      else { ytPlayer.unMute(); ytPlayer.setVolume(ST.feedback); }
-    }
-    var name = ST.langs[idx] ? ST.langs[idx].name : ('لغة '+(idx+1));
-    document.getElementById('lang-btn-txt').textContent = '🔊 ' + name;
-    updateLangBtnHighlight('audio', idx);
-  }
-  // تحديث الأزرار
-  document.querySelectorAll('#audio-langs .lp-lang, .lp-orig').forEach(function(b){ b.classList.remove('active'); });
-  if (idx === -2 && document.getElementById('lp-orig-audio')) document.getElementById('lp-orig-audio').classList.add('active');
-  if (idx >= 0 && document.getElementById('lp-aud-'+idx)) document.getElementById('lp-aud-'+idx).classList.add('active');
-}
-
-function setSub(idx) {
-  ST.activeSub = idx;
-  document.querySelectorAll('#sub-langs .lp-lang').forEach(function(b){ b.classList.remove('active'); });
-  if (idx === -1) {
+    S.running=false; S.startTime=null;
+    clearInterval(S.interval);
+    LIVE.langs.forEach(function(l){if(l.audioEl){l.audioEl.pause();l.audioEl=null;}});
+    if(ytPlayer&&ytPlayer.unMute) ytPlayer.unMute();
     clearCanvas();
-    document.getElementById('lang-btn-txt').textContent = 'اختر اللغة';
-  } else {
-    var btn = document.getElementById('lp-sub-'+idx);
-    if (btn) btn.classList.add('active');
-    var name = ST.langs[idx] ? ST.langs[idx].name : ('لغة '+(idx+1));
-    document.getElementById('lang-btn-txt').textContent = '💬 ' + name;
+    document.getElementById('sync-btn').classList.remove('running');
+    document.getElementById('sync-btn').textContent='▶ ابدأ التزامن';
+    document.getElementById('sync-info').textContent='اضغط الزر في لحظة بدء الكلمة';
+    document.getElementById('sync-timer').textContent='';
+    toast('⏹ توقف التزامن');
   }
 }
 
-function updateLangBtnHighlight(type, idx) {}
+// ══ اختيار الصوت (مشاهد) ══
+function setAudio(idx, btn) {
+  LIVE.audioIdx=idx;
+  document.querySelectorAll('#audio-opts .opt-btn').forEach(function(b){b.classList.remove('active');});
+  if(btn) btn.classList.add('active');
+  applyAudioChoice();
+  toast(idx===-2?'🎙 الصوت الأصلي':idx===-1?'🔇 كتم':'🔊 '+LIVE.langs[idx].name);
+}
+function applyAudioChoice() {
+  if(!LIVE.sync.running) return;
+  if(ytPlayer&&ytPlayer.setVolume){
+    if(LIVE.audioIdx===-2){ytPlayer.unMute();ytPlayer.setVolume(ST.vol);}
+    else ytPlayer.mute();
+  }
+  LIVE.langs.forEach(function(l,i){
+    if(!l.audioEl) return;
+    l.audioEl.volume=(LIVE.audioIdx===i)?ST.vol/100:0;
+  });
+}
 
-// ══ loop الرئيسي ══
+// ══ اختيار الترجمة (مشاهد) ══
+function setSub(idx, btn) {
+  LIVE.subIdx=idx;
+  document.querySelectorAll('#sub-opts .opt-btn').forEach(function(b){b.classList.remove('active');});
+  if(btn) btn.classList.add('active');
+  if(idx<0) clearCanvas();
+  toast(idx<0?'💬 إيقاف الترجمة':'💬 '+LIVE.langs[idx].name);
+}
+
+// ══ التسجيل: رفع الترجمة ══
+function loadRecSub(inp) {
+  if(!inp.files[0]) return;
+  var f=inp.files[0];
+  var reader=new FileReader();
+  reader.onload=function(e){
+    REC.subEvents=f.name.endsWith('.srt')?parseSRT(e.target.result):parseASS(e.target.result);
+    document.getElementById('fn-rec-sub').textContent=f.name+' ('+REC.subEvents.length+' سطر)';
+    toast('✓ تم رفع الترجمة');
+  };
+  reader.readAsText(f,'UTF-8');
+}
+
+function applyRecOffset() {
+  var v=document.getElementById('rec-offset').value.trim();
+  REC.offset=v?offsetToSec(v):0;
+  toast('✓ offset = '+v);
+}
+
+function setRecSub(show, btn) {
+  REC.showSub=show;
+  document.getElementById('rec-sub-off').classList.toggle('active',!show);
+  document.getElementById('rec-sub-on').classList.toggle('active',show);
+  if(!show) clearCanvas();
+}
+
+// ══ حلقة الرسم ══
 function startLoop() {
-  cancelAnimationFrame(ST.rafId);
-  function loop() {
-    if (ytPlayer && ytPlayer.getCurrentTime) {
-      var t = ytPlayer.getCurrentTime();
-      updateSeek(t);
-      if (ST.activeSub >= 0 && ST.mode !== 'obs') {
-        if (ST.mode === 'sync' && ST.syncStart) {
-          var elapsed = (Date.now() - ST.syncStart) / 1000;
-          drawSubFromFile(elapsed);
-        } else if (ST.mode !== 'sync') {
-          var _st = Math.max(0, t - ST.subDelay);
-          drawSubFromFile(_st);
-        }
+  if(ST.rafId) cancelAnimationFrame(ST.rafId);
+  function loop(){
+    if(ST.playing){
+      if(ST.mode==='live' && LIVE.sync.running && LIVE.subIdx>=0 && LIVE.sync.startTime){
+        var t=(Date.now()-LIVE.sync.startTime)/1000;
+        drawSub(t, LIVE.langs[LIVE.subIdx].subEvents);
+      } else if(ST.mode==='rec' && REC.showSub && REC.subEvents.length && ytPlayer&&ytPlayer.getCurrentTime){
+        var yt=ytPlayer.getCurrentTime();
+        var t=yt-REC.offset;
+        if(t>=0) drawSub(t, REC.subEvents);
+        else clearCanvas();
       }
     }
-    ST.rafId = requestAnimationFrame(loop);
+    ST.rafId=requestAnimationFrame(loop);
   }
   loop();
 }
 
-// ══ رسم الترجمة من ملف ══
-function drawSubFromFile(t) {
-  var sub = ST.subs[ST.activeSub];
-  if (!sub || !sub.events) { clearCanvas(); return; }
-  var active = sub.events.filter(function(e){ return t >= e.startSec && t < e.endSec; });
-  var text = active.map(function(e){ return e.cleanText; }).join('\n');
-  drawSubText(text);
-}
-
-function drawSubText(text) {
-  var canvas = document.getElementById('sub-canvas');
-  var ctx = canvas.getContext('2d');
-  canvas.width = canvas.offsetWidth;
-  canvas.height = canvas.offsetHeight;
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  if (!text || !text.trim()) return;
-
-  var fontSize = Math.round(canvas.height * 0.038);
-  ctx.font = 'bold ' + fontSize + 'px Tajawal, Arial, sans-serif';
-  ctx.direction = 'rtl';
-  ctx.textAlign = 'center';
-  var maxW = canvas.width * 0.82;
-  var lineH = fontSize * 1.55;
-  var lines = [];
-  text.split(/\n|\\n/).forEach(function(part) {
-    if (!part.trim()) return;
-    wrapText(ctx, part.trim(), maxW).forEach(function(l){ lines.push(l); });
-  });
-  if (!lines.length) return;
-  var totalH = lines.length * lineH;
-  var y = canvas.height * 0.88 - totalH;
-  lines.forEach(function(line) {
-    var x = canvas.width / 2;
-    var tw = ctx.measureText(line).width;
-    ctx.fillStyle = 'rgba(0,0,0,.65)';
-    ctx.beginPath();
-    ctx.roundRect(x - tw/2 - 10, y - fontSize, tw + 20, fontSize*1.4, 4);
-    ctx.fill();
-    ctx.fillStyle = '#fff';
-    ctx.shadowColor = 'rgba(0,0,0,.8)';
-    ctx.shadowBlur = 6;
-    ctx.fillText(line, x, y);
-    ctx.shadowBlur = 0;
-    y += lineH;
-  });
-}
-
-function wrapText(ctx, text, maxW) {
-  var words = text.split(' '), lines = [], cur = '';
-  words.forEach(function(w) {
-    var test = cur ? cur+' '+w : w;
-    if (ctx.measureText(test).width > maxW && cur) { lines.push(cur); cur = w; }
-    else cur = test;
-  });
-  if (cur) lines.push(cur);
+// ══ رسم الترجمة ══
+function wrapText(ctx,text,maxW){
+  var words=text.split(' '),lines=[],cur='';
+  words.forEach(function(w){var t=cur?cur+' '+w:w;if(ctx.measureText(t).width>maxW&&cur){lines.push(cur);cur=w;}else cur=t;});
+  if(cur) lines.push(cur);
   return lines;
 }
-
-function clearCanvas() {
-  var canvas = document.getElementById('sub-canvas');
-  canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
-}
-
-// ══ seek / vol / play ══
-function tapToPlay() {
-  if (!ytPlayer) return;
-  ytPlayer.playVideo();
-  showControls();
-}
-
-function togglePlay() {
-  if (!ytPlayer) return;
-  if (ST.mode === 'sync' && ST.syncStart) {
-    toast('⚠ أوقف التزامن أولاً قبل الإيقاف المؤقت');
-    return;
-  }
-  if (ST.playing) {
-    ytPlayer.pauseVideo();
-    document.getElementById('bs-txt').textContent = 'موقوف مؤقتاً';
-    document.getElementById('black-screen').classList.add('paused');
-  } else {
-    ytPlayer.playVideo();
-  }
-  updatePlayIcon();
-  showControls();
-}
-
-function updatePlayIcon() {
-  var el = document.getElementById('play-icon');
-  if (!el) return;
-  el.innerHTML = ST.playing
-    ? '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>'
-    : '<path d="M8 5v14l11-7z"/>';
-}
-
-function seekTo(v) {
-  if (!ytPlayer || !ytPlayer.getDuration) return;
-  ytPlayer.seekTo(ytPlayer.getDuration() * v / 100, true);
-  showControls();
-}
-
-function updateSeek(t) {
-  if (!ytPlayer || !ytPlayer.getDuration) return;
-  var dur = ytPlayer.getDuration();
-  if (!dur) return;
-  document.getElementById('seek-bar').value = (t/dur)*100;
-  document.getElementById('time-cur').textContent = fmtTime(t);
-  document.getElementById('time-dur').textContent = fmtTime(dur);
-}
-
-function setVol(v) {
-  ST.vol = parseInt(v);
-  if (ST.activeAudio === -2 && ytPlayer && ytPlayer.setVolume) ytPlayer.setVolume(ST.vol);
-  else if (ST.activeAudio >= 0) {
-    var el = ST.audioEls[ST.activeAudio];
-    if (el) {
-      if (typeof el.setVolume === 'function') el.setVolume(ST.vol);
-      else el.volume = ST.vol/100;
-    }
-    if (ytPlayer) {
-      if (ST.feedback <= 0) ytPlayer.mute();
-      else { ytPlayer.unMute(); ytPlayer.setVolume(ST.feedback); }
-    }
-  }
-}
-
-function fmtTime(s) {
-  var h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=Math.floor(s%60);
-  if (h>0) return h+':'+(m<10?'0':'')+m+':'+(sec<10?'0':'')+sec;
-  return m+':'+(sec<10?'0':'')+sec;
-}
-
-function toggleFS() {
-  if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(function(){});
-  else document.exitFullscreen();
-}
-
-// ══ controls hide ══
-function showControls() {
-  document.getElementById('controls').classList.add('visible');
-  document.getElementById('watch-header').classList.add('visible');
-  clearTimeout(ST.ctrlTimer);
-  ST.ctrlTimer = setTimeout(hideControls, 3500);
-}
-function hideControls() {
-  document.getElementById('controls').classList.remove('visible');
-  document.getElementById('watch-header').classList.remove('visible');
-}
-function startCtrlHide() {
-  document.getElementById('player-wrap').addEventListener('mousemove', showControls);
-  document.getElementById('player-wrap').addEventListener('touchstart', showControls);
-  showControls();
-}
-
-// ══ لوحة اللغة ══
-function openLangPanel() {
-  document.getElementById('lang-panel').classList.add('open');
-  document.getElementById('lang-overlay').classList.add('open');
-}
-function closeLangPanel() {
-  document.getElementById('lang-panel').classList.remove('open');
-  document.getElementById('lang-overlay').classList.remove('open');
-}
-function switchLpTab(type, el) {
-  document.querySelectorAll('.lp-tab').forEach(function(t){ t.classList.remove('active'); });
-  document.querySelectorAll('.lp-section').forEach(function(s){ s.classList.remove('active'); });
-  el.classList.add('active');
-  document.getElementById('sec-'+type).classList.add('active');
-}
-
-// ══ Realtime — يستمع لتغييرات الصفحة ══
-function startRealtimePage(pageId) {
-  var url = SUPA_URL.replace('https://','wss://') + '/realtime/v1/websocket?apikey=' + SUPA_KEY + '&vsn=1.0.0';
-  var ws = new WebSocket(url);
-  ws.onopen = function() {
-    ws.send(JSON.stringify({ topic:'realtime:public:pages', event:'phx_join', payload:{}, ref:'1' }));
-  };
-  ws.onmessage = function(e) {
-    var msg = JSON.parse(e.data);
-    if (msg.event === 'UPDATE') {
-      var s = msg.payload && msg.payload.record;
-      if (!s || String(s.id) !== String(pageId)) return;
-      // تغيير الحالة
-      if (s.status === 'upcoming') {
-        showNoLive('يبدأ البث قريباً', s.title_ar || '');
-        document.getElementById('player-wrap').style.display = 'none';
-      } else if (s.status === 'ended' || s.status === 'recorded') {
-        showNoLive('انتهى البث', 'شكراً لمتابعتكم');
-        document.getElementById('player-wrap').style.display = 'none';
-      } else if (s.status === 'live') {
-        // بدأ البث
-        document.getElementById('no-live').classList.remove('show');
-        loadPage(pageId);
-      }
-      // تحديث sync_start
-      if (typeof s.sync_start !== 'undefined') {
-        if (s.sync_start && ST.mode === 'sync') {
-          ST.syncStart = new Date(s.sync_start).getTime();
-          // شغّل صوت المترجم فوراً
-          if (ST.activeAudio >= 0 && ST.playing) {
-            var _ra=ST.audioEls[ST.activeAudio];
-            if (_ra) {
-              var _re=(Date.now()-ST.syncStart)/1000;
-              if(typeof _ra.seekTo==='function'){_ra.seekTo(_re,true);_ra.setVolume(ST.vol);_ra.playVideo();}
-              else{_ra.currentTime=_re;_ra.volume=ST.vol/100;_ra.play().catch(function(){});}
-            }
-          }
-        } else {
-          ST.syncStart = null;
-          Object.keys(ST.audioEls).forEach(function(i){ var _a=ST.audioEls[i]; if(!_a)return; if(typeof _a.pauseVideo==='function') _a.pauseVideo(); else _a.pause(); });
-          clearCanvas();
-        }
-      }
-      // تحديث feedback
-      if (s.feedback !== undefined) {
-        ST.feedback = s.feedback;
-        if (ST.activeAudio >= 0 && ytPlayer && ytPlayer.setVolume) ytPlayer.setVolume(ST.feedback);
-      }
-    }
-  };
-  ws.onclose = function() { setTimeout(function(){ startRealtimePage(pageId); }, 5000); };
-}
-
-// ══ polling البث كل 10 ثواني ══
-var _pollTimer;
-function startPollingLive() {
-  clearInterval(_pollTimer);
-  _pollTimer = setInterval(async function() {
-    try {
-      var data = await supa('pages', 'select=id&status=eq.live&limit=1');
-      if (data && data[0]) {
-        clearInterval(_pollTimer);
-        document.getElementById('no-live').classList.remove('show');
-        document.getElementById('loader').classList.remove('hide');
-        await loadPage(data[0].id);
-      }
-    } catch(e) {}
-  }, 10000);
-}
-
-// ══ parse SRT ══
-function parseSRT(text) {
-  var events=[];
-  text.trim().split(/\r?\n\r?\n/).forEach(function(block) {
-    var lines=block.split(/\r?\n/); if(lines.length<3) return;
-    var t=lines[1].match(/(\d+:\d+:\d+[,\.]\d+)\s*-->\s*(\d+:\d+:\d+[,\.]\d+)/); if(!t) return;
-    var txt=lines.slice(2).join('\n').replace(/<[^>]+>/g,'').trim(); if(!txt) return;
-    events.push({startSec:srts(t[1]),endSec:srts(t[2]),cleanText:txt});
+function drawSub(t,events){
+  var canvas=document.getElementById('sub-canvas');
+  var ctx=canvas.getContext('2d');
+  canvas.width=canvas.offsetWidth; canvas.height=canvas.offsetHeight;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  if(!events||!events.length) return;
+  var active=events.filter(function(e){return t>=e.startSec&&t<e.endSec;});
+  if(!active.length) return;
+  var fs=Math.round(canvas.height*.04);
+  ctx.font='bold '+fs+'px Tajawal,Arial'; ctx.textAlign='center';
+  var maxW=canvas.width*.84,lineH=fs*1.55,all=[];
+  active.forEach(function(ev){
+    ev.cleanText.split(/\n|\\n/).forEach(function(p){
+      p=p.trim();if(!p)return;
+      wrapText(ctx,p,maxW).forEach(function(l){all.push(l);});
+    });
   });
-  return events;
+  if(!all.length) return;
+  var sy=canvas.height*.89-all.length*lineH;
+  all.forEach(function(line){
+    var x=canvas.width/2,y=sy;sy+=lineH;
+    var tw=ctx.measureText(line).width;
+    ctx.fillStyle='rgba(0,0,0,.65)';ctx.beginPath();
+    ctx.roundRect(x-tw/2-12,y-fs,tw+24,fs*1.4,4);ctx.fill();
+    ctx.fillStyle='rgba(0,0,0,.9)';ctx.fillText(line,x+1.5,y+1.5);
+    ctx.fillStyle='#fff';ctx.fillText(line,x,y);
+  });
 }
-function srts(t){t=t.replace(',','.');var p=t.split(':');return parseInt(p[0])*3600+parseInt(p[1])*60+parseFloat(p[2]);}
+function clearCanvas(){
+  var c=document.getElementById('sub-canvas');
+  c.getContext('2d').clearRect(0,0,99999,99999);
+}
 
-// ══ parse ASS ══
-function parseASS(text) {
-  var events=[],lines=text.split(/\r?\n/),inEv=false,fmt=[];
-  lines.forEach(function(line) {
+// ══ تحليل ASS / SRT ══
+function parseASS(text){
+  var events=[],fmt=[],inEv=false;
+  text.split(/\r?\n/).forEach(function(line){
     line=line.trim();
     if(line==='[Events]'){inEv=true;return;}
-    if(line.startsWith('[')&&line!=='[Events]'){inEv=false;return;}
+    if(line.startsWith('[')&&line!=='[Events]') inEv=false;
     if(!inEv) return;
     if(line.startsWith('Format:')) fmt=line.replace('Format:','').split(',').map(function(s){return s.trim();});
-    if(line.startsWith('Dialogue:')) {
-      var parts=line.replace('Dialogue:','').split(',');
-      var obj={};
+    if(line.startsWith('Dialogue:')){
+      var parts=line.replace('Dialogue:','').split(','),obj={};
       for(var j=0;j<fmt.length&&j<parts.length;j++){
         if(fmt[j]==='Text'){obj.Text=parts.slice(j).join(',').trim();break;}
         obj[fmt[j]]=parts[j].trim();
       }
-      obj.startSec=assTime(obj.Start); obj.endSec=assTime(obj.End);
-      obj.cleanText=obj.Text?(obj.Text.replace(/\{[^}]*\}/g,'').replace(/\\N/g,'\n').replace(/\\n/g,'\n').trim()):'';
+      obj.startSec=tts(obj.Start);obj.endSec=tts(obj.End);
+      obj.cleanText=(obj.Text||'').replace(/\{[^}]*\}/g,'').replace(/\\N/gi,'\n').trim();
       if(obj.cleanText) events.push(obj);
     }
   });
   return events;
 }
-function assTime(t){if(!t)return 0;var p=t.split(':');return parseInt(p[0])*3600+parseInt(p[1])*60+parseFloat(p[2]);}
+function parseSRT(text){
+  var events=[];
+  text.trim().split(/\r?\n\r?\n/).forEach(function(block){
+    var lines=block.split(/\r?\n/);if(lines.length<3)return;
+    var t=lines[1].match(/(\d+:\d+:\d+[,\.]\d+)\s*-->\s*(\d+:\d+:\d+[,\.]\d+)/);if(!t)return;
+    events.push({startSec:srts(t[1]),endSec:srts(t[2]),cleanText:lines.slice(2).join('\n').replace(/<[^>]+>/g,'').trim()});
+  });
+  return events;
+}
+function tts(t){if(!t)return 0;var p=t.split(':');return parseInt(p[0])*3600+parseInt(p[1])*60+parseFloat(p[2]);}
+function srts(t){t=t.replace(',','.');var p=t.split(':');return parseInt(p[0])*3600+parseInt(p[1])*60+parseFloat(p[2]);}
+function offsetToSec(str){var p=str.split(':');if(p.length===2)return parseInt(p[0])*60+parseFloat(p[1]);if(p.length===3)return parseInt(p[0])*3600+parseInt(p[1])*60+parseFloat(p[2]);return parseFloat(str)*60;}
 
-// ══ extract YouTube ID ══
-function extractYTId(url) {
-  if (!url) return '';
-  var m = url.match(/(?:v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{11})/);
-  return m ? m[1] : '';
+// ══ تشغيل/إيقاف ══
+function togglePlay(){
+  if(!ytPlayer||!ytPlayer.getPlayerState) return;
+  ST.playing=!ST.playing;
+  if(ST.playing){
+    ytPlayer.playVideo();
+    LIVE.langs.forEach(function(l){if(l.audioEl)l.audioEl.play();});
+  } else {
+    ytPlayer.pauseVideo();
+    LIVE.langs.forEach(function(l){if(l.audioEl)l.audioEl.pause();});
+    clearCanvas();
+  }
+  updatePlayIcon(); showCtrl();
+}
+function updatePlayIcon(){
+  document.getElementById('play-icon').innerHTML=ST.playing
+    ?'<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>'
+    :'<path d="M8 5v14l11-7z"/>';
 }
 
-// ══ UI helpers ══
-function showPlayer() {
-  document.getElementById('player-wrap').style.display = 'block';
-  document.getElementById('no-live').classList.remove('show');
+// ══ الصوت ══
+function setVol(v){
+  ST.vol=parseInt(v);
+  if(ytPlayer&&ytPlayer.setVolume&&LIVE.audioIdx===-2) ytPlayer.setVolume(ST.vol);
+  LIVE.langs.forEach(function(l,i){if(l.audioEl&&i===LIVE.audioIdx)l.audioEl.volume=ST.vol/100;});
 }
-function showNoLive(title, sub) {
-  document.getElementById('no-live-title').textContent = title || 'لا يوجد بث';
-  document.getElementById('no-live-sub').textContent = sub || '';
-  document.getElementById('no-live').classList.add('show');
-  document.getElementById('player-wrap').style.display = 'none';
-  document.getElementById('no-live-time').textContent = 'آخر فحص: ' + new Date().toLocaleTimeString('ar');
-}
-function hideLoader() { document.getElementById('loader').classList.add('hide'); }
-function setLoaderTxt(t) { document.getElementById('ld-txt').textContent = t; }
 
-var toastT;
-function toast(msg) {
-  var el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show');
-  clearTimeout(toastT); toastT=setTimeout(function(){el.classList.remove('show');},2500);
+// ══ ملء الشاشة ══
+function toggleFS(){
+  var el=document.getElementById('videoWrap');
+  if(!document.fullscreenElement)(el.requestFullscreen||el.webkitRequestFullscreen).call(el);
+  else(document.exitFullscreen||document.webkitExitFullscreen).call(document);
+}
+document.addEventListener('fullscreenchange',function(){
+  document.getElementById('fs-icon').innerHTML=document.fullscreenElement
+    ?'<path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>'
+    :'<path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>';
+});
+
+// ══ تحكم ظهور الشريط ══
+function showCtrl(){
+  var w=document.getElementById('videoWrap');
+  w.classList.add('show-ctrl');clearTimeout(ST.ctrlTimer);
+  ST.ctrlTimer=setTimeout(function(){w.classList.remove('show-ctrl');},4000);
+}
+function startCtrlHide(){
+  var w=document.getElementById('videoWrap');
+  w.addEventListener('mousemove',showCtrl);
+  w.addEventListener('touchstart',showCtrl);
+  w.addEventListener('click',showCtrl);
+}
+
+// ══ مفاتيح ══
+document.addEventListener('keydown',function(e){
+  if(e.code==='Space'){e.preventDefault();togglePlay();}
+  if(e.key==='t'||e.key==='T') toggleSync();
+});
+
+// ══ toast ══
+function toast(msg){
+  var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('show');},2400);
 }
 </script>
-
-<!-- YouTube IFrame API -->
-<script src="https://www.youtube.com/iframe_api"></script>
 </body>
 </html>
