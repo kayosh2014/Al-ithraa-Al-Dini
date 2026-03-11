@@ -637,14 +637,14 @@ function setAudio(idx) {
   } else {
     var el = ST.audioEls[idx];
     if (el) {
-      // في وضع sync — لا تشغّل الصوت حتى يضغط المشرف "بدأ التزامن"
-      if (ST.mode === 'sync' && !ST.syncStart) {
+      // في وضع sync — أوقف الصوت دائماً، الـ loop وحده يشغّله بعد syncStart + audioDelay
+      if (ST.mode === 'sync') {
         el.volume = 0;
+        if (typeof el.setVolume === 'function') el.setVolume(0);
         if (typeof el.pauseVideo === 'function') el.pauseVideo(); else el.pause();
       } else {
         var _vt = ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0;
         if (_vt < ST.audioDelay) {
-          // الفيديو لم يصل لوقت بدء الصوت بعد — انتظر
           el.volume = 0;
           if (typeof el.pauseVideo === 'function') el.pauseVideo(); else el.pause();
         } else {
@@ -719,12 +719,20 @@ function startLoop() {
             else { _ael.currentTime = _at; _ael.volume = ST.vol / 100; _ael.play().catch(function(){}); }
           }
         } else if (ST.mode === 'sync' && ST.syncStart) {
-          // sync: شغّل بعد audioDelay من لحظة التزامن
+          // sync: شغّل بعد audioDelay من لحظة التزامن — مرة واحدة فقط
           var elapsed2 = (Date.now() - ST.syncStart) / 1000;
           if (elapsed2 >= ST.audioDelay && _isPaused) {
             var _at2 = elapsed2 - ST.audioDelay;
-            if (typeof _ael.seekTo === 'function') { _ael.seekTo(_at2, true); _ael.setVolume(ST.vol); _ael.playVideo(); }
-            else { _ael.currentTime = _at2; _ael.volume = ST.vol / 100; _ael.play().catch(function(){}); }
+            if (typeof _ael.seekTo === 'function') {
+              _ael.seekTo(_at2, true);
+              _ael.unMute && _ael.unMute();
+              _ael.setVolume(ST.vol);
+              _ael.playVideo();
+            } else {
+              _ael.currentTime = _at2;
+              _ael.volume = ST.vol / 100;
+              _ael.play().catch(function(){});
+            }
           }
         }
       }
