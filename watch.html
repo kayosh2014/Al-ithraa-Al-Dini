@@ -561,15 +561,15 @@ function updateObsDot(idx, on) {
 
 function loadYTAudio(idx, url) {
   var id = extractYTId(url); if (!id) return;
-  var iframe = document.createElement('iframe');
-  iframe.src = 'https://www.youtube.com/embed/' + id + '?autoplay=0&controls=0';
-  iframe.style.display = 'none'; iframe.id = 'yt-audio-' + idx;
-  document.body.appendChild(iframe);
-  var ytAud = null;
+  var div = document.createElement('div');
+  div.style.display = 'none'; div.id = 'yt-audio-' + idx;
+  document.body.appendChild(div);
   var t = setInterval(function() {
     if (!window.YT || !window.YT.Player) return;
     clearInterval(t);
-    ytAud = new YT.Player('yt-audio-' + idx, {
+    new YT.Player('yt-audio-' + idx, {
+      videoId: id,
+      playerVars: { autoplay: 0, controls: 0, mute: 1 },
       events: { onReady: function(e) {
         e.target.setVolume(0);
         ST.audioEls[idx] = e.target;
@@ -611,6 +611,10 @@ function setAudio(idx) {
         el.volume = 0;
         if (typeof el.setVolume === 'function') el.setVolume(0);
         if (typeof el.pauseVideo === 'function') el.pauseVideo(); else el.pause();
+      } else if (ST.mode === 'obs') {
+        // obs — شغّل الصوت مباشرة من البداية
+        if (typeof el.seekTo === 'function') { el.seekTo(0, true); el.unMute && el.unMute(); el.setVolume(ST.vol); el.playVideo(); }
+        else { el.currentTime = 0; el.volume = ST.vol / 100; el.play().catch(function(){}); }
       } else {
         var _vt = ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0;
         if (_vt < ST.audioDelay) {
