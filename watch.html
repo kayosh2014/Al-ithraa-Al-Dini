@@ -915,15 +915,11 @@ function startRealtimePage(pageId) {
   ws.onmessage = function(e) {
     var msg = JSON.parse(e.data);
     console.log('[RT raw]', JSON.stringify(msg).substring(0, 200));
-    // الرسالة الفعلية: {"event":"UPDATE","payload":{"table":"pages","type":"UPDATE","record":{...}}}
-    var s = null;
-    if (msg.payload && msg.payload.record) {
-      s = msg.payload.record;
-    }
-    console.log('[RT check] s.id:', s && s.id, 'pageId:', pageId, 'match:', s && String(s.id) === String(pageId));
-    if (!s) { console.log('[RT] s is null, skipping'); return; }
-    console.log('[RT] s.id='+s.id+' pageId='+pageId+' sync_start='+s.sync_start+' mode='+ST.mode);
-    if (String(s.id) !== String(pageId)) { console.log('[RT] id mismatch'); return; }
+    // فقط رسائل UPDATE الحقيقية من postgres_changes
+    if (!msg.payload || !msg.payload.record || msg.payload.type !== 'UPDATE') return;
+    var s = msg.payload.record;
+    console.log('[RT] id='+s.id+' pageId='+pageId+' sync_start='+s.sync_start+' status='+s.status);
+    if (String(s.id) !== String(pageId)) return;
     // تغيير الحالة
     if (s.status === 'upcoming') {
       showNoLive('يبدأ البث قريباً', s.title_ar || '');
@@ -931,7 +927,7 @@ function startRealtimePage(pageId) {
     } else if (s.status === 'ended' || s.status === 'recorded') {
       showNoLive('انتهى البث', 'شكراً لمتابعتكم');
       document.getElementById('player-wrap').style.display = 'none';
-    } else if (s.status === 'live') {
+    } else if (s.status === 'live' && ST.mode === 'none') {
       document.getElementById('no-live').classList.remove('show');
       loadPage(pageId);
     }

@@ -924,11 +924,17 @@ async function loadPagesTable(){
         '<td><div style="display:flex;gap:5px">'+
           '<button class="btn btn-gold btn-sm" onclick="editPage('+p.id+')">✏</button>'+
           '<button class="btn btn-gray btn-sm" onclick="window.open(\'watch.html?page='+p.id+'\')">👁</button>'+
-          (p.category==='sync'&&p.status==='live' ?
-            (p.sync_start ?
-              '<button class="btn btn-red btn-sm sync-btn" data-id="'+p.id+'" onclick="quickSync('+p.id+',this)" title="أوقف التزامن">⏹ جاري</button>' :
-              '<button class="btn btn-green btn-sm sync-btn" data-id="'+p.id+'" onclick="quickSync('+p.id+',this)" title="ابدأ التزامن">⚡ تزامن</button>'
-            ) : '')+ 
+          (p.category==='sync' ?
+            (p.status==='live' ?
+              '<button class="btn btn-red btn-sm" onclick="toggleVideoStatus('+p.id+',\'ended\',this)">⏹ فيديو</button>' :
+              '<button class="btn btn-green btn-sm" onclick="toggleVideoStatus('+p.id+',\'live\',this)">▶ فيديو</button>'
+            ) +
+            (p.status==='live' ?
+              (p.sync_start ?
+                '<button class="btn btn-red btn-sm sync-btn" data-id="'+p.id+'" onclick="quickSync('+p.id+',this)">⏹ ترجمة</button>' :
+                '<button class="btn btn-gold btn-sm sync-btn" data-id="'+p.id+'" onclick="quickSync('+p.id+',this)">⚡ ترجمة</button>'
+              ) : ''
+            ) : '')+
           '<button class="btn btn-red btn-sm" onclick="deletePage('+p.id+')">🗑</button>'+
         '</div></td>';
       tbody.appendChild(tr);
@@ -1121,6 +1127,14 @@ function setDelayFromSeconds(type, total) {
 
 var _syncInterval = null;
 var _syncPageId = null;
+
+async function toggleVideoStatus(pageId, newStatus, btn) {
+  try {
+    await db('PATCH','pages',{status:newStatus},'id=eq.'+pageId);
+    toast(newStatus==='live' ? '▶ بدأ الفيديو' : '⏹ أوقف الفيديو', 'ok');
+    await loadPagesTable();
+  } catch(e){ toast('❌ '+e.message,'err'); }
+}
 
 async function quickSync(pageId, btn) {
   var isRunning = btn.classList.contains('btn-red');
