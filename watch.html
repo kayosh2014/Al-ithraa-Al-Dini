@@ -915,13 +915,10 @@ function startRealtimePage(pageId) {
   ws.onmessage = function(e) {
     var msg = JSON.parse(e.data);
     console.log('[RT raw]', JSON.stringify(msg).substring(0, 200));
+    // الرسالة الفعلية: {"event":"UPDATE","payload":{"table":"pages","type":"UPDATE","record":{...}}}
     var s = null;
-    if (msg.event === 'UPDATE' && msg.payload && msg.payload.record) {
+    if (msg.payload && msg.payload.record) {
       s = msg.payload.record;
-    } else if (msg.payload && msg.payload.type === 'UPDATE' && msg.payload.record) {
-      s = msg.payload.record;
-    } else if (msg.payload && msg.payload.data && msg.payload.data.type === 'UPDATE') {
-      s = msg.payload.data.record;
     }
     console.log('[RT check] s.id:', s && s.id, 'pageId:', pageId, 'match:', s && String(s.id) === String(pageId));
     if (!s) { console.log('[RT] s is null, skipping'); return; }
