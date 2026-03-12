@@ -239,23 +239,60 @@ footer{padding:12px 4.5% 42px}
       </div>
 
       <div class="category-row">
-        <span class="category-chip">الدروس</span>
+        <span class="category-chip">المحتوى</span>
         <span class="category-chip">الخطب</span>
-        <span class="category-chip">المحاضرات</span>
-        <span class="category-chip">البثوث المنتهية</span>
-        <span class="category-chip">المواد المترجمة</span>
+        <span class="category-chip">الدروس العلمية</span>
+        <span class="category-chip">البرامج الدينية الموسمية</span>
+        <span class="category-chip">الندوات والمؤتمرات</span>
+        <span class="category-chip">القران والصلوات</span>
       </div>
 
       <div class="rail">
         <div class="rail-title">
-          <h2>الأحدث إضافة</h2>
+          <h2>المحتوى</h2>
           <a href="#">عرض الكل</a>
         </div>
-        <div class="cards-row" id="videos-row"></div>
-        <div class="empty-state" id="videos-empty" style="display:none">
-          <span class="empty-state-icon">📹</span>
-          <div>لا يوجد محتوى منشور بعد</div>
+        <div class="cards-row" id="content-all"></div>
+      </div>
+
+      <div class="rail">
+        <div class="rail-title">
+          <h2>الخطب</h2>
         </div>
+        <div class="cards-row" id="content-khutab"></div>
+      </div>
+
+      <div class="rail">
+        <div class="rail-title">
+          <h2>الدروس العلمية</h2>
+        </div>
+        <div class="cards-row" id="content-durus"></div>
+      </div>
+
+      <div class="rail">
+        <div class="rail-title">
+          <h2>البرامج الدينية الموسمية</h2>
+        </div>
+        <div class="cards-row" id="content-programs"></div>
+      </div>
+
+      <div class="rail">
+        <div class="rail-title">
+          <h2>الندوات والمؤتمرات</h2>
+        </div>
+        <div class="cards-row" id="content-conferences"></div>
+      </div>
+
+      <div class="rail">
+        <div class="rail-title">
+          <h2>القران والصلوات</h2>
+        </div>
+        <div class="cards-row" id="content-quran"></div>
+      </div>
+
+      <div class="empty-state" id="videos-empty" style="display:none">
+        <span class="empty-state-icon">📹</span>
+        <div>لا يوجد محتوى منشور بعد</div>
       </div>
     </div>
   </section>
@@ -315,7 +352,6 @@ async function loadSettings() {
     document.getElementById('site-en-loader').textContent = nameEn;
     document.getElementById('site-name-header').textContent = nameAr;
     document.getElementById('site-en-header').textContent = nameEn.toUpperCase();
-    document.getElementById('logo-icon').textContent = icon;
     document.getElementById('hero-title-name').textContent = nameAr;
     document.getElementById('footer-name').textContent = nameAr;
     document.title = nameAr;
@@ -365,11 +401,23 @@ async function loadLive() {
 
 async function loadContent() {
   try {
-    var data = await supa('pages', 'select=id,title_ar,title_en,yt_url,broadcast_type,location,status,category&status=in.(ended,recorded)&order=created_at.desc');
+    var data = await supa('pages', 'select=id,title_ar,title_en,yt_url,broadcast_type,location,status,category&status=in.(live,ended,recorded,scheduled)&order=created_at.desc');
     var pages = data || [];
     document.getElementById('hero-stat-content').textContent = pages.length || '٠';
-    var row = document.getElementById('videos-row');
-    row.innerHTML = '';
+
+    var allRow = document.getElementById('content-all');
+    var khutabRow = document.getElementById('content-khutab');
+    var durusRow = document.getElementById('content-durus');
+    var progRow = document.getElementById('content-programs');
+    var confRow = document.getElementById('content-conferences');
+    var quranRow = document.getElementById('content-quran');
+
+    allRow.innerHTML = '';
+    khutabRow.innerHTML = '';
+    durusRow.innerHTML = '';
+    progRow.innerHTML = '';
+    confRow.innerHTML = '';
+    quranRow.innerHTML = '';
 
     if (!pages.length) {
       document.getElementById('videos-empty').style.display = 'block';
@@ -377,7 +425,14 @@ async function loadContent() {
     }
     document.getElementById('videos-empty').style.display = 'none';
 
-    pages.forEach(function(v) {
+    function statusText(status){
+      if(status === 'live') return 'جاري الآن';
+      if(status === 'scheduled') return 'قادم';
+      if(status === 'ended' || status === 'recorded') return 'منتهي';
+      return 'محتوى';
+    }
+
+    function addCard(row, v) {
       var ytId = extractYTId(v.yt_url);
       var thumb = ytId
         ? '<img src="https://img.youtube.com/vi/' + ytId + '/mqdefault.jpg" alt="" loading="lazy">'
@@ -395,11 +450,21 @@ async function loadContent() {
         '<div class="video-body">' +
           '<div class="video-title">' + (v.title_ar || v.title_en || '—') + '</div>' +
           '<div class="video-meta">' +
-            '<span>' + (v.location || 'محتوى منشور') + '</span>' +
-            '<span>' + (v.category || 'درس') + '</span>' +
+            '<span>' + (v.location || statusText(v.status)) + '</span>' +
+            '<span>' + statusText(v.status) + '</span>' +
           '</div>' +
         '</div>';
       row.appendChild(card);
+    }
+
+    pages.forEach(function(v) {
+      addCard(allRow, v);
+
+      if (v.broadcast_type === 'الخطب') addCard(khutabRow, v);
+      if (v.broadcast_type === 'الدروس العلمية') addCard(durusRow, v);
+      if (v.broadcast_type === 'البرامج الدينية الموسمية') addCard(progRow, v);
+      if (v.broadcast_type === 'الندوات والمؤتمرات') addCard(confRow, v);
+      if (v.broadcast_type === 'القران والصلوات') addCard(quranRow, v);
     });
   } catch (e) {}
 }
