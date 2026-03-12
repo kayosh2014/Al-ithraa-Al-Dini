@@ -342,11 +342,11 @@ select.inp option{background:var(--bg3);}
           <div class="inp-row">
             <div class="field"><label>نوع البث</label>
               <select class="inp" id="f-type">
-                <option value="خطبة">خطبة</option>
-                <option value="درس">درس</option>
-                <option value="قرآن">قرآن</option>
-                <option value="ندوة">ندوة</option>
-                <option value="أخرى">أخرى (اكتب)</option>
+                <option value="الخطب">الخطب</option>
+                <option value="الدروس العلمية">الدروس العلمية</option>
+                <option value="القران والصلوات">القران والصلوات</option>
+                <option value="الندوات والمؤتمرات">الندوات والمؤتمرات</option>
+                <option value="البرامج الدينية الموسمية">البرامج الدينية الموسمية </option>
               </select></div>
             <div class="field" id="f-type-custom-wrap" style="display:none">
               <label>اكتب النوع</label>
@@ -642,7 +642,7 @@ function resetCreateForm(){
   ['f-title-ar','f-title-en','f-yt-url','f-type-custom','f-obs-port','f-obs-pass','f-new-yt'].forEach(function(id){
     var el=document.getElementById(id); if(el) el.value=id==='f-obs-port'?'4455':'';
   });
-  document.getElementById('f-type').value='خطبة';
+  document.getElementById('f-type').value='الخطب';
   var fb=document.getElementById('f-feedback');
   if(fb){fb.value=0;document.getElementById('f-feedback-val').textContent='0%';}
   setDelayFromSeconds('sub', 0);
@@ -658,7 +658,7 @@ function resetCreateForm(){
 
 // ══ نوع البث ══
 document.getElementById('f-type').addEventListener('change',function(){
-  document.getElementById('f-type-custom-wrap').style.display=this.value==='أخرى'?'block':'none';
+  document.getElementById('f-type-custom-wrap').style.display=this.value==='أخرى'?'block':'none'
 });
 
 // ══ فئة البث ══
@@ -963,7 +963,17 @@ async function editPage(id){
 
     // نوع البث
     var typeEl=document.getElementById('f-type');
-    var validTypes=['خطبة','درس','قرآن','ندوة'];
+    var validTypes=[    // نوع البث
+    var typeEl=document.getElementById('f-type');
+    var validTypes=['الخطب','درس','القران والصلوات','الندوات والمؤتمرات','البرامج الدينية الموسمية'];
+    if(validTypes.includes(p.broadcast_type)){
+      typeEl.value=p.broadcast_type;
+    } else {
+      typeEl.value='أخرى';
+      document.getElementById('f-type-custom').value=p.broadcast_type||'';
+      document.getElementById('f-type-custom-wrap').style.display='block';
+    }
+'الخطب','درس','القران والصلوات','الندوات والمؤتمرات','البرامج الدينية الموسمية'];
     if(validTypes.includes(p.broadcast_type)){
       typeEl.value=p.broadcast_type;
     } else {
