@@ -342,10 +342,11 @@ select.inp option{background:var(--bg3);}
           <div class="inp-row">
             <div class="field"><label>نوع البث</label>
               <select class="inp" id="f-type">
-                <option value="خطبة">خطبة</option>
-                <option value="درس">درس</option>
-                <option value="قرآن">قرآن</option>
-                <option value="ندوة">ندوة</option>
+                <option value="الخطب">الخطب</option>
+                <option value="الدروس العلمية">الدروس العلمية</option>
+                <option value="القران والصلوات">القران والصلوات</option>
+                <option value="البرامج الدينية الموسمية">البرامج الدينية الموسمية</option>
+                <option value="الندوات والمؤتمرات">الندوات والمؤتمرات</option>
                 <option value="أخرى">أخرى (اكتب)</option>
               </select></div>
             <div class="field" id="f-type-custom-wrap" style="display:none">
@@ -573,7 +574,7 @@ select.inp option{background:var(--bg3);}
 // ══ SUPABASE ══
 var SUPA_URL='https://umowxqalocwyrnvcuhyh.supabase.co';
 var SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtb3d4cWFsb2N3eXJudmN1aHloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNzMyMDIsImV4cCI6MjA4ODY0OTIwMn0.Tqaz8x6aKmdiBWYXEx4ujNdk0kiJgyRJ_Kk2OS-Yv0E';
-var ADMIN_PASS='admin123';
+var ADMIN_PASS='nnasdasdusadh@12121edwd';
 var EDIT_ID=null; // صفحة يتم تعديلها
 
 async function db(method,table,body,params){
@@ -963,7 +964,7 @@ async function editPage(id){
 
     // نوع البث
     var typeEl=document.getElementById('f-type');
-    var validTypes=['خطبة','درس','قرآن','ندوة'];
+    var validTypes=['الخطب','الدرس العلمية','القرآن والصلوات','البرامج الدينية الموسمية','ندوة'];
     if(validTypes.includes(p.broadcast_type)){
       typeEl.value=p.broadcast_type;
     } else {
