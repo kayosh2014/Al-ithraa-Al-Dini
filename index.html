@@ -177,7 +177,7 @@ footer{padding:12px 4.5% 42px}
 <header id="header">
   <div class="header-shell">
     <a class="logo" href="#">
-      <div class="logo-mark" id="logo-icon">🕌</div>
+      <div class="logo-mark" id="logo-icon"></div>
       <div class="logo-text">
         <span class="logo-ar" id="site-name-header">الإثراء الديني</span>
         <span class="logo-en" id="site-en-header">AL-ITHRAA AL-DINI</span>
@@ -200,7 +200,7 @@ footer{padding:12px 4.5% 42px}
   <div class="hero-shell">
 
       <h1><em id="hero-title-name">الإثراء الديني</em><br></h1>
-      <p>﴿ وَمَنْ أَحْسَنُ قَوْلًا مِّمَّن دَعَا إِلَى اللَّهِ وَعَمِلَ صَالِحًا ﴾</p>
+      <p1>﴿ وَمَنْ أَحْسَنُ قَوْلًا مِّمَّن دَعَا إِلَى اللَّهِ وَعَمِلَ صَالِحًا ﴾</p1>
       <div class="hero-actions">
         <a href="watch.html" class="btn btn-primary" id="hero-watch-btn">▶ ابدأ المشاهدة</a>
         <a href="#videos-section" class="btn btn-secondary">تصفح الأحدث</a>
@@ -308,7 +308,7 @@ async function loadSettings() {
     var s = data[0];
     var nameAr = s.site_name || 'الإثراء الديني';
     var nameEn = s.site_name_en || 'AL-ITHRAA AL-DINI';
-    var icon = s.logo_icon || '🕌';
+    var icon = s.logo_icon || '';
     document.getElementById('site-name-loader').textContent = nameAr;
     document.getElementById('site-en-loader').textContent = nameEn;
     document.getElementById('site-name-header').textContent = nameAr;
