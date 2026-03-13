@@ -606,14 +606,14 @@ function setAudio(idx) {
   } else {
     var el = ST.audioEls[idx];
     if (el) {
-      var isYtOptionalAudio = typeof el.seekTo === 'function';
-      // فئة لايف متزامن + مسجل: إذا كان الصوت الاختياري من يوتيوب فشغّله بنفس منطق OBS لايف
-      if ((ST.mode === 'sync' || ST.mode === 'recorded') && isYtOptionalAudio) {
+      // صوت يوتيوب الاختياري لفئتي sync و recorded: شغّل مباشرة بنفس منطق OBS
+      if ((ST.mode === 'sync' || ST.mode === 'recorded') && typeof el.seekTo === 'function') {
         el.seekTo(0, true);
         el.unMute && el.unMute();
-        el.setVolume(ST.vol);
-        el.playVideo();
+        el.setVolume && el.setVolume(ST.vol);
+        el.playVideo && el.playVideo();
       } else if (ST.mode === 'sync') {
+        // sync للصوت العادي فقط — أوقفه، والـ loop يشغله بعد syncStart + audioDelay
         el.volume = 0;
         if (typeof el.setVolume === 'function') el.setVolume(0);
         if (typeof el.pauseVideo === 'function') el.pauseVideo(); else el.pause();
@@ -628,7 +628,12 @@ function setAudio(idx) {
           if (typeof el.pauseVideo === 'function') el.pauseVideo(); else el.pause();
         } else {
           var _at = _vt - ST.audioDelay;
-          if (typeof el.seekTo === 'function') { el.seekTo(_at, true); el.unMute && el.unMute(); el.setVolume(ST.vol); el.playVideo(); }
+          if (typeof el.seekTo === 'function') {
+            el.seekTo(_at, true);
+            el.unMute && el.unMute();
+            el.setVolume && el.setVolume(ST.vol);
+            el.playVideo && el.playVideo();
+          }
           else { el.currentTime = _at; el.volume = ST.vol / 100; if (ST.playing) el.play().catch(function(){}); }
         }
       }
