@@ -566,13 +566,41 @@ function loadYTAudio(idx, url) {
     clearInterval(t);
     new YT.Player('yt-audio-' + idx, {
       videoId: id,
-      playerVars: { autoplay: 0, controls: 0, mute: 1 },
+      playerVars: { autoplay: 0, controls: 0, mute: 1, playsinline: 1 },
       events: { onReady: function(e) {
-        e.target.setVolume(0);
+        try { e.target.mute && e.target.mute(); } catch(_e){}
+        try { e.target.setVolume(0); } catch(_e){}
+        try { e.target.cueVideoById && e.target.cueVideoById({ videoId: id, startSeconds: 0 }); } catch(_e){}
+        e.target._ytAudioId = id;
+        e.target._startedOnce = false;
         ST.audioEls[idx] = e.target;
       }}
     });
   }, 500);
+}
+
+function startAuxAudio(el, atSec) {
+  atSec = Math.max(0, parseFloat(atSec) || 0);
+  if (!el) return;
+  if (typeof el.seekTo === 'function') {
+    try {
+      if (!el._startedOnce && el._ytAudioId && typeof el.loadVideoById === 'function') {
+        el.loadVideoById({ videoId: el._ytAudioId, startSeconds: atSec });
+        el._startedOnce = true;
+      } else {
+        el.seekTo(atSec, true);
+        el.playVideo();
+      }
+      setTimeout(function(){
+        try { el.unMute && el.unMute(); } catch(_e){}
+        try { el.setVolume && el.setVolume(ST.vol); } catch(_e){}
+      }, 180);
+    } catch(_e){}
+  } else {
+    try { el.currentTime = atSec; } catch(_e){}
+    el.volume = ST.vol / 100;
+    el.play().catch(function(){});
+  }
 }
 
 function loadIcecast(idx, url) {
@@ -616,8 +644,11 @@ function setAudio(idx) {
           if (typeof el.pauseVideo === 'function') el.pauseVideo(); else el.pause();
         } else {
           var _at = _vt - ST.audioDelay;
-          if (typeof el.seekTo === 'function') { el.seekTo(_at, true); el.unMute && el.unMute(); el.setVolume(ST.vol); if (ST.playing) el.playVideo(); }
-          else { el.currentTime = _at; el.volume = ST.vol / 100; if (ST.playing) el.play().catch(function(){}); }
+          if (ST.playing) startAuxAudio(el, _at);
+          else {
+            if (typeof el.pauseVideo === 'function') el.pauseVideo();
+            else el.pause();
+          }
         }
       }
     }
@@ -692,24 +723,14 @@ function startLoop() {
           // recorded/obs: شغّل بعد audioDelay من وقت الفيديو
           if (t >= ST.audioDelay && _isPaused) {
             var _at = t - ST.audioDelay;
-            if (typeof _ael.seekTo === 'function') { _ael.seekTo(_at, true); _ael.unMute && _ael.unMute(); _ael.setVolume(ST.vol); _ael.playVideo(); }
-            else { _ael.currentTime = _at; _ael.volume = ST.vol / 100; _ael.play().catch(function(){}); }
+            startAuxAudio(_ael, _at);
           }
         } else if (ST.mode === 'sync' && ST.syncStart) {
           // sync: شغّل بعد audioDelay من لحظة التزامن — مرة واحدة فقط
           var elapsed2 = (Date.now() - ST.syncStart) / 1000;
           if (elapsed2 >= ST.audioDelay && _isPaused) {
             var _at2 = elapsed2 - ST.audioDelay;
-            if (typeof _ael.seekTo === 'function') {
-              _ael.seekTo(_at2, true);
-              _ael.unMute && _ael.unMute();
-              _ael.setVolume(ST.vol);
-              _ael.playVideo();
-            } else {
-              _ael.currentTime = _at2;
-              _ael.volume = ST.vol / 100;
-              _ael.play().catch(function(){});
-            }
+            startAuxAudio(_ael, _at2);
           }
         }
       }
