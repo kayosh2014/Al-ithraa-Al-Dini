@@ -393,9 +393,8 @@ async function loadPage(id) {
     if (ST.mode === 'sync' || ST.mode === 'recorded') {
       await loadSubtitleFiles();
       ST.langs.forEach(function(l, i) {
-        var ytAudio = getLangYtAudio(l);
         if (l.audio_url) { var _a=new Audio(l.audio_url); _a.volume=0; _a.preload='auto'; ST.audioEls[i]=_a; }
-        else if (ytAudio) loadYTAudio(i, ytAudio);
+        else if (l.yt_audio_url || l.yt_audio || l.youtube_audio || l.youtube_audio_url || l.audio_youtube_url) loadYTAudio(i, l.yt_audio_url || l.yt_audio || l.youtube_audio || l.youtube_audio_url || l.audio_youtube_url);
         else if (l.icecast_url)  loadIcecast(i, l.icecast_url);
       });
     }
@@ -498,8 +497,7 @@ function buildLangPanel() {
     }
 
     // ترجمة صوتية
-    var ytAudio = getLangYtAudio(l);
-    if (ytAudio || l.icecast_url || l.audio_url) {
+    if (l.yt_audio_url || l.yt_audio || l.youtube_audio || l.youtube_audio_url || l.audio_youtube_url || l.icecast_url || l.audio_url) {
       hasAudio = true;
       var ba = document.createElement('button');
       ba.className = 'lp-lang'; ba.id = 'lp-aud-' + i;
@@ -526,8 +524,7 @@ function buildLangPanel() {
 // ══ OBS — يقرأ obs_text من Supabase Realtime (السكربت Python هو من يكتب) ══
 function connectAllOBS() {
   ST.langs.forEach(function(l, i) {
-    var ytAudio = getLangYtAudio(l);
-    if (ytAudio) loadYTAudio(i, ytAudio);
+    if (l.yt_audio_url || l.yt_audio || l.youtube_audio || l.youtube_audio_url || l.audio_youtube_url) loadYTAudio(i, l.yt_audio_url || l.yt_audio || l.youtube_audio || l.youtube_audio_url || l.audio_youtube_url);
     else if (l.icecast_url) loadIcecast(i, l.icecast_url);
   });
   startObsRealtime();
@@ -560,11 +557,6 @@ function startObsRealtime() {
 function updateObsDot(idx, on) {
   var el = document.getElementById('obs-dot-' + idx);
   if (el) el.className = 'obs-lang-dot' + (on?' on':'');
-}
-
-function getLangYtAudio(l) {
-  if (!l) return '';
-  return l.yt_audio_url || l.yt_audio || l.youtube_audio || l.youtube_audio_url || l.audio_youtube_url || '';
 }
 
 function loadYTAudio(idx, url) {
@@ -627,11 +619,21 @@ function setAudio(idx) {
         var _vt = ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0;
         if (_vt < ST.audioDelay) {
           el.volume = 0;
+          if (typeof el.setVolume === 'function') el.setVolume(0);
           if (typeof el.pauseVideo === 'function') el.pauseVideo(); else el.pause();
         } else {
           var _at = _vt - ST.audioDelay;
-          if (typeof el.seekTo === 'function') { el.seekTo(_at, true); el.unMute && el.unMute(); el.setVolume(ST.vol); el.playVideo(); }
-          else { el.currentTime = _at; el.volume = ST.vol / 100; if (ST.playing) el.play().catch(function(){}); }
+          if (typeof el.seekTo === 'function') {
+            el.seekTo(_at, true);
+            el.unMute && el.unMute();
+            el.setVolume(ST.vol);
+            if (ST.playing) el.playVideo();
+          }
+          else {
+            el.currentTime = _at;
+            el.volume = ST.vol / 100;
+            if (ST.playing) el.play().catch(function(){});
+          }
         }
       }
     }
@@ -696,8 +698,17 @@ function startLoop() {
           // recorded: شغّل بعد audioDelay من الفيديو
           if (t >= ST.audioDelay && _isPaused) {
             var _at = t - ST.audioDelay;
-            if (typeof _ael.seekTo === 'function') { _ael.seekTo(_at, true); _ael.setVolume(ST.vol); _ael.playVideo(); }
-            else { _ael.currentTime = _at; _ael.volume = ST.vol / 100; _ael.play().catch(function(){}); }
+            if (typeof _ael.seekTo === 'function') {
+              _ael.seekTo(_at, true);
+              _ael.unMute && _ael.unMute();
+              _ael.setVolume(ST.vol);
+              _ael.playVideo();
+            }
+            else {
+              _ael.currentTime = _at;
+              _ael.volume = ST.vol / 100;
+              _ael.play().catch(function(){});
+            }
           }
         } else if (ST.mode === 'sync' && ST.syncStart) {
           // sync: شغّل بعد audioDelay من لحظة التزامن — مرة واحدة فقط
