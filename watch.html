@@ -390,7 +390,7 @@ async function loadPage(id) {
     var isLive = page.status === 'live';
     document.getElementById('live-badge').style.display = isLive ? 'flex' : 'none';
 
-    if (ST.mode === 'sync' || ST.mode === 'recorded') {
+    if (ST.mode === 'sync' || ST.mode === 'recorded' || ST.mode === 'obs') {
       await loadSubtitleFiles();
       ST.langs.forEach(function(l, i) {
         if (l.audio_url) { var _a=new Audio(l.audio_url); _a.volume=0; _a.preload='auto'; ST.audioEls[i]=_a; }
@@ -463,7 +463,8 @@ async function loadSubtitleFiles() {
       var r = await fetch(url, { signal: ctrl.signal });
       clearTimeout(tid);
       var txt = await r.text();
-      var isSRT = url.toLowerCase().includes('.srt');
+      var subType = (l.subtitle_type || '').toLowerCase();
+      var isSRT = subType === 'srt' || (!subType && url.toLowerCase().includes('.srt'));
       var events = isSRT ? parseSRT(txt) : parseASS(txt);
       ST.subs.push({ name: l.name, events: events });
     } catch(e) { ST.subs.push(null); }
@@ -666,14 +667,16 @@ function startLoop() {
     if (ytPlayer && ytPlayer.getCurrentTime) updateSeek(t);
 
     // ── الترجمة النصية ──
-    if (ST.activeSub >= 0 && ST.mode !== 'obs') {
+    if (ST.activeSub >= 0) {
       if (ST.mode === 'sync' && ST.syncStart) {
         // sync: الوقت من لحظة ضغط التزامن + تأخير
         var elapsed = (Date.now() - ST.syncStart) / 1000 - ST.subDelay;
         drawSubFromFile(Math.max(0, elapsed));
-      } else if (ST.mode === 'recorded') {
-        // recorded: الوقت من الفيديو + تأخير
+      } else if (ST.mode === 'recorded' || (ST.mode === 'obs' && ST.subs[ST.activeSub] && ST.subs[ST.activeSub].events)) {
+        // recorded / obs-file: الوقت من الفيديو + تأخير
         drawSubFromFile(Math.max(0, t - ST.subDelay));
+      } else if (ST.mode === 'obs') {
+        drawSubText(ST.obsTexts[ST.activeSub] || '');
       }
     }
 
