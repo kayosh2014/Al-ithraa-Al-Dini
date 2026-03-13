@@ -609,15 +609,10 @@ function setAudio(idx) {
         if (typeof el.setVolume === 'function') el.setVolume(0);
         if (typeof el.pauseVideo === 'function') el.pauseVideo(); else el.pause();
       } else if (ST.mode === 'obs') {
-        // obs — لا يبدأ إلا بعد ضغط المشرف "بدأ الترجمة"
+        // obs — لا تبدأ الترجمة/الصوت إلا بأمر المشرف من لوحة الادمن
+        el.volume = 0;
         if (typeof el.setVolume === 'function') el.setVolume(0);
-        else el.volume = 0;
         if (typeof el.pauseVideo === 'function') el.pauseVideo(); else el.pause();
-        if (ST.syncStart) {
-          var _obsElapsed = Math.max(0, (Date.now() - ST.syncStart) / 1000);
-          if (typeof el.seekTo === 'function') { el.seekTo(_obsElapsed, true); el.unMute && el.unMute(); el.setVolume(ST.vol); el.playVideo(); }
-          else { el.currentTime = _obsElapsed; el.volume = ST.vol / 100; el.play().catch(function(){}); }
-        }
       } else {
         var _vt = ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0;
         if (_vt < ST.audioDelay) {
@@ -656,12 +651,8 @@ function setSub(idx) {
     if (btn) btn.classList.add('active');
     var name = ST.langs[idx] ? ST.langs[idx].name : ('لغة '+(idx+1));
     document.getElementById('lang-btn-txt').textContent = '💬 ' + name;
-    if (ST.mode === 'obs') {
-      if (!ST.syncStart) {
-        clearCanvas();
-      } else if (!ST.subs[idx] || !ST.subs[idx].events || !ST.subs[idx].events.length) {
-        drawSubText(ST.obsTexts[idx] || '');
-      }
+    if (ST.mode === 'obs' && (!ST.subs[idx] || !ST.subs[idx].events || !ST.subs[idx].events.length)) {
+      drawSubText(ST.obsTexts[idx] || '');
     }
   }
 }
@@ -685,22 +676,22 @@ function startLoop() {
         // recorded: الوقت من الفيديو + تأخير
         drawSubFromFile(Math.max(0, t - ST.subDelay));
       } else if (ST.mode === 'obs') {
-        // obs: لا تبدأ الترجمة إلا بعد ضغط المشرف "بدأ الترجمة"
-        if (!ST.syncStart) {
-          clearCanvas();
-        } else {
-          var obsElapsed = Math.max(0, (Date.now() - ST.syncStart) / 1000);
+        // obs: لا تعرض الترجمة إلا بعد بدءها من المشرف
+        if (ST.syncStart) {
+          var elapsedObs = (Date.now() - ST.syncStart) / 1000;
           if (ST.subs[ST.activeSub] && ST.subs[ST.activeSub].events && ST.subs[ST.activeSub].events.length) {
-            drawSubFromFile(obsElapsed);
+            drawSubFromFile(Math.max(0, elapsedObs));
           } else {
             drawSubText(ST.obsTexts[ST.activeSub] || '');
           }
+        } else {
+          clearCanvas();
         }
       }
     }
 
     // ── الترجمة الصوتية ──
-    if (ST.activeAudio >= 0 && ST.playing && (ST.mode !== 'sync' || ST.syncStart)) {
+    if (ST.activeAudio >= 0 && ST.playing && ((ST.mode !== 'sync' && ST.mode !== 'obs') || ST.syncStart)) {
       var _ael = ST.audioEls[ST.activeAudio];
       if (_ael) {
         var _isPaused = typeof _ael.getPlayerState === 'function'
@@ -713,8 +704,8 @@ function startLoop() {
             if (typeof _ael.seekTo === 'function') { _ael.seekTo(_at, true); _ael.setVolume(ST.vol); _ael.playVideo(); }
             else { _ael.currentTime = _at; _ael.volume = ST.vol / 100; _ael.play().catch(function(){}); }
           }
-        } else if (ST.mode === 'sync' && ST.syncStart) {
-          // sync: شغّل بعد audioDelay من لحظة التزامن — مرة واحدة فقط
+        } else if ((ST.mode === 'sync' || ST.mode === 'obs') && ST.syncStart) {
+          // sync/obs: شغّل من لحظة ضغط المشرف على بدء الترجمة
           var elapsed2 = (Date.now() - ST.syncStart) / 1000;
           if (elapsed2 >= ST.audioDelay && _isPaused) {
             var _at2 = elapsed2 - ST.audioDelay;
@@ -725,21 +716,6 @@ function startLoop() {
               _ael.playVideo();
             } else {
               _ael.currentTime = _at2;
-              _ael.volume = ST.vol / 100;
-              _ael.play().catch(function(){});
-            }
-          }
-        } else if (ST.mode === 'obs' && ST.syncStart) {
-          // obs: يبدأ الصوت فقط بعد ضغط المشرف، ومن لحظة البدء نفسها
-          var obsElapsed2 = Math.max(0, (Date.now() - ST.syncStart) / 1000);
-          if (_isPaused) {
-            if (typeof _ael.seekTo === 'function') {
-              _ael.seekTo(obsElapsed2, true);
-              _ael.unMute && _ael.unMute();
-              _ael.setVolume(ST.vol);
-              _ael.playVideo();
-            } else {
-              _ael.currentTime = obsElapsed2;
               _ael.volume = ST.vol / 100;
               _ael.play().catch(function(){});
             }
@@ -954,29 +930,31 @@ function startRealtimePage(pageId) {
       if (s.sync_start && (ST.mode === 'sync' || ST.mode === 'obs')) {
         // سجّل وقت البدء — الـ loop يتكفل بالترجمة والصوت
         ST.syncStart = Date.now(); // وقت الاستلام وليس وقت الـ server
-        // في sync فقط اختر أول ترجمة نصية تلقائياً إذا لم يختر المشاهد
-        if (ST.mode === 'sync' && ST.activeSub < 0) {
+        // اختر أول ترجمة نصية تلقائياً إذا لم يختر المشاهد
+        if (ST.activeSub < 0) {
           for (var _ri=0; _ri<ST.langs.length; _ri++) {
-            if (ST.subs[_ri] && ST.subs[_ri].events && ST.subs[_ri].events.length) { setSub(_ri); break; }
+            if ((ST.subs[_ri] && ST.subs[_ri].events && ST.subs[_ri].events.length) || (ST.mode === 'obs' && ST.obsTexts[_ri])) { setSub(_ri); break; }
           }
         }
-        // إذا كانت لغة مترجمة مختارة، خفّض/اكتم الصوت الأصلي
+        // كتم الفيديو الأصلي إذا اختار المشاهد لغة مترجمة
         if (ST.activeAudio >= 0 && ytPlayer) {
           if (ytPlayer && typeof ytPlayer.mute === 'function') {
             if (ST.feedback <= 0) ytPlayer.mute();
             else { ytPlayer.unMute(); ytPlayer.setVolume(ST.feedback); }
           }
         }
-      } else {
-        // أوقف الترجمة/التزامن — أوقف الصوت المترجم فقط وأبق اختيار المشاهد كما هو
+      } else if (ST.mode === 'sync' || ST.mode === 'obs') {
+        // أوقف الترجمة — أوقف كل شيء
         ST.syncStart = null;
+        ST.activeSub = -1;
         clearCanvas();
         Object.keys(ST.audioEls).forEach(function(i){
           var _a = ST.audioEls[i]; if (!_a) return;
           if (typeof _a.pauseVideo === 'function') _a.pauseVideo(); else _a.pause();
-          if (typeof _a.setVolume === 'function') _a.setVolume(0); else _a.volume = 0;
         });
         if (ytPlayer && typeof ytPlayer.unMute === 'function') { ytPlayer.unMute(); ytPlayer.setVolume(ST.vol); }
+        ST.activeAudio = -2;
+        document.getElementById('lang-btn-txt').textContent = 'الصوت الأصلي';
       }
     }
     // تحديث feedback
