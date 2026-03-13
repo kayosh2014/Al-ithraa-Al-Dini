@@ -591,13 +591,15 @@ function loadYTAudio(idx, url) {
       events: {
         onReady: function(e) {
           ST.audioEls[idx] = e.target;
-
+          try {
+            var ifr = e.target.getIframe && e.target.getIframe();
+            if (ifr) ifr.setAttribute('allow', 'autoplay; encrypted-media');
+          } catch(_){ }
           try {
             e.target.mute && e.target.mute();
             e.target.setVolume && e.target.setVolume(0);
             e.target.pauseVideo && e.target.pauseVideo();
-          } catch(_) {}
-
+          } catch(_){ }
           if (ST.pendingAudioIdx === idx || ST.activeAudio === idx) {
             ST.pendingAudioIdx = null;
             setTimeout(function(){ setAudio(idx); }, 80);
@@ -648,40 +650,39 @@ function setAudio(idx) {
         if (typeof el.pauseVideo === 'function') el.pauseVideo(); else el.pause();
       } else if (ST.mode === 'obs') {
         // obs — شغّل الصوت مباشرة من البداية
-        if (typeof el.seekTo === 'function') { el.seekTo(0, true); el.unMute && el.unMute(); el.setVolume(ST.vol); el.playVideo(); }
-        else { el.currentTime = 0; el.volume = ST.vol / 100; el.play().catch(function(){}); }
-      } else {
         if (typeof el.seekTo === 'function') {
-          if (ST.mode === 'recorded') {
-            el.seekTo(0, true);
-            el.unMute && el.unMute();
-            el.setVolume && el.setVolume(ST.vol);
-            el.playVideo && el.playVideo();
-          } else if (ST.mode === 'sync') {
-            el.seekTo(0, true);
-            el.unMute && el.unMute();
-            el.setVolume && el.setVolume(ST.vol);
-            el.pauseVideo && el.pauseVideo();
-          } else {
-            el.seekTo(0, true);
-            el.unMute && el.unMute();
-            el.setVolume && el.setVolume(ST.vol);
-            el.playVideo && el.playVideo();
-          }
+          el.seekTo(0, true);
+          el.unMute && el.unMute();
+          el.setVolume && el.setVolume(ST.vol);
+          el.playVideo && el.playVideo();
         } else {
-          if (ST.mode === 'recorded') {
-            el.currentTime = 0;
-            el.volume = ST.vol / 100;
-            if (ST.playing) el.play().catch(function(){});
-          } else if (ST.mode === 'sync') {
-            el.currentTime = 0;
-            el.volume = ST.vol / 100;
-            el.pause();
-          } else {
-            el.currentTime = 0;
-            el.volume = ST.vol / 100;
-            el.play().catch(function(){});
-          }
+          el.currentTime = 0;
+          el.volume = ST.vol / 100;
+          el.play().catch(function(){});
+        }
+      } else if (ST.mode === 'recorded') {
+        // recorded — شغّل يوتيوب مباشرة مثل obs
+        if (typeof el.seekTo === 'function') {
+          el.seekTo(0, true);
+          el.unMute && el.unMute();
+          el.setVolume && el.setVolume(ST.vol);
+          el.playVideo && el.playVideo();
+        } else {
+          el.currentTime = 0;
+          el.volume = ST.vol / 100;
+          if (ST.playing) el.play().catch(function(){});
+        }
+      } else {
+        // sync — جهّزه فقط، والـ loop يشغّله بعد syncStart
+        if (typeof el.seekTo === 'function') {
+          el.seekTo(0, true);
+          el.unMute && el.unMute();
+          el.setVolume && el.setVolume(ST.vol);
+          el.pauseVideo && el.pauseVideo();
+        } else {
+          el.currentTime = 0;
+          el.volume = ST.vol / 100;
+          el.pause();
         }
       }
     }
@@ -746,7 +747,7 @@ function startLoop() {
           // recorded: شغّل بعد audioDelay من الفيديو
           if (t >= ST.audioDelay && _isPaused) {
             var _at = t - ST.audioDelay;
-            if (typeof _ael.seekTo === 'function') { _ael.seekTo(_at, true); _ael.setVolume(ST.vol); _ael.playVideo(); }
+            if (typeof _ael.seekTo === 'function') { _ael.seekTo(_at, true); _ael.unMute && _ael.unMute(); _ael.setVolume && _ael.setVolume(ST.vol); _ael.playVideo && _ael.playVideo(); }
             else { _ael.currentTime = _at; _ael.volume = ST.vol / 100; _ael.play().catch(function(){}); }
           }
         } else if (ST.mode === 'sync' && ST.syncStart) {
@@ -1071,21 +1072,16 @@ function extractYTId(url) {
   if (!url) return '';
   try {
     var u = new URL(url);
-
-    if (u.hostname.includes('youtu.be')) {
+    if ((u.hostname || '').includes('youtu.be')) {
       return (u.pathname || '').replace(/^\/+/, '').split('/')[0] || '';
     }
-
     var v = u.searchParams.get('v');
     if (v) return v;
-
     var parts = (u.pathname || '').split('/').filter(Boolean);
     var embedIdx = parts.indexOf('embed');
     if (embedIdx >= 0 && parts[embedIdx + 1]) return parts[embedIdx + 1];
-
     var shortsIdx = parts.indexOf('shorts');
     if (shortsIdx >= 0 && parts[shortsIdx + 1]) return parts[shortsIdx + 1];
-
     return '';
   } catch(e) {
     var m = String(url).match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([A-Za-z0-9_-]{6,})/);
