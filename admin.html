@@ -1073,7 +1073,7 @@ async function loadPagesTable(){
         '<td><div class="page-actions">'+
           '<button class="btn btn-gold btn-sm" onclick="editPage('+p.id+')">✏</button>'+
           '<button class="btn btn-gray btn-sm" onclick="window.open(\'watch.html?page='+p.id+'\')">👁</button>'+
-          ((p.category==='sync' || p.category==='obs') ?
+          (p.category==='sync' ?
             (p.status==='live' ?
               '<button class="btn btn-red btn-sm" onclick="toggleVideoStatus('+p.id+',\'ended\',this)">⏹ فيديو</button>' :
               '<button class="btn btn-green btn-sm" onclick="toggleVideoStatus('+p.id+',\'live\',this)">▶ فيديو</button>'
