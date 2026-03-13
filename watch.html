@@ -521,7 +521,7 @@ function buildLangPanel() {
   document.getElementById('tab-audio').style.display = hasAudio ? '' : 'none';
 }
 
-// ══ OBS — يقرأ obs_text من Supabase Realtime (السكربت Python هو من يكتب) ══
+// ══ OBS — يقرأ obs_text من Supabase Realtime (p-r) ══
 function connectAllOBS() {
   ST.langs.forEach(function(l, i) {
     if (l.yt_audio_url) loadYTAudio(i, l.yt_audio_url);
