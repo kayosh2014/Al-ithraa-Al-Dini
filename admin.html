@@ -495,7 +495,6 @@ select.inp option{background:var(--bg3);color:var(--white);}
           <!-- تأخير الترجمة — لفئة مسجل فقط -->
           <div id="delay-settings-wrap" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
             <div style="font-size:.75rem;color:var(--silver);margin-bottom:12px">⏱ تأخير بدء الترجمة والصوت</div>
-            <div class="delay-obs-hint" style="display:none;font-size:.68rem;color:var(--silver);margin:-4px 0 12px 0">في لايف OBS ينطبق هذا التأخير على ملف الترجمة ASS/SRT وعلى الصوت الاختياري من يوتيوب</div>
 
             <!-- صف العناوين -->
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:8px">
@@ -801,9 +800,7 @@ function setCat(cat,el){
   document.querySelectorAll('.type-chip').forEach(function(c){c.classList.remove('active');});
   if(el) el.classList.add('active');
   document.getElementById('obs-settings-wrap').style.display=cat==='obs'?'block':'none';
-  document.getElementById('delay-settings-wrap').style.display=(cat==='recorded'||cat==='sync'||cat==='obs')?'block':'none';
-  var delayHint=document.querySelector('#delay-settings-wrap .delay-obs-hint');
-  if(delayHint) delayHint.style.display=cat==='obs'?'block':'none';
+  document.getElementById('delay-settings-wrap').style.display=(cat==='recorded'||cat==='sync')?'block':'none';
   // أعد رسم بطاقات اللغات الموجودة بالنوع الجديد
   var wrap=document.getElementById('langs-wrap');
   var count=wrap.querySelectorAll('.lang-card').length||2;
@@ -850,15 +847,6 @@ function buildLangCard(l,i,cat){
     html+='<input class="lang-inp" placeholder="اسم Text Source في OBS" value="'+(l.obs_source||'')+'">';
     html+='<input class="lang-inp" placeholder="رابط Icecast للصوت (اختياري)" value="'+(l.icecast_url||'')+'">';
     html+='<input class="lang-inp" placeholder="رابط يوتيوب Unlisted للصوت (اختياري)" value="'+(l.yt_audio_url||'')+'">';
-
-    html+='<div class="file-row">';
-    html+='<label class="file-lbl" onclick="this.nextElementSibling.click()">📂 ASS/SRT</label>';
-    html+='<input type="file" accept=".ass,.ssa,.srt" style="display:none" onchange="handleFile(this,\'sub\')">';
-    html+='<span class="file-status">'+(l.subtitle_url?'✅ '+l.subtitle_url.split('/').pop():'لم يُختر ملف')+'</span>';
-    html+='<input type="hidden" value="'+(l.subtitle_url||'')+'">';
-    html+='</div>';
-
-    html+='<select class="lang-inp" style="margin-top:8px;margin-bottom:0"><option value="ass"'+((l.subtitle_type||'ass')==='ass'?' selected':'')+'>ASS</option><option value="srt"'+((l.subtitle_type||'ass')==='srt'?' selected':'')+'>SRT</option></select>';
   } else {
     html+='<div class="file-row">';
     html+='<label class="file-lbl" onclick="this.nextElementSibling.click()">📂 ASS/SRT</label>';
@@ -875,7 +863,7 @@ function buildLangCard(l,i,cat){
     html+='</div>';
 
     html+='<input class="yt-audio-inp" placeholder="🎬 رابط صوت من يوتيوب (اختياري)" value="'+(l.yt_audio_url||'')+'">';
-    html+='<select class="lang-inp" style="margin-top:8px;margin-bottom:0"><option value="ass"'+((l.subtitle_type||'ass')==='ass'?' selected':'')+'>ASS</option><option value="srt"'+((l.subtitle_type||'ass')==='srt'?' selected':'')+'>SRT</option></select>';
+    html+='<select class="lang-inp" style="margin-top:8px;margin-bottom:0"><option value="ass">ASS</option><option value="srt">SRT</option></select>';
   }
   html+='</div>';
   return html;
@@ -957,9 +945,6 @@ function collectLangs(){
       lang.obs_source=inps[1]?inps[1].value:'';
       lang.icecast_url=inps[2]?inps[2].value:'';
       lang.yt_audio_url=inps[3]?inps[3].value:'';
-      var rowsObs=card.querySelectorAll('.file-row');
-      lang.subtitle_url=rowsObs[0]?rowsObs[0].querySelector('input[type=hidden]').value:'';
-      lang.subtitle_type=inps[4]?inps[4].value:'ass';
     } else {
       var rows=card.querySelectorAll('.file-row');
       lang.subtitle_url=rows[0]?rows[0].querySelector('input[type=hidden]').value:'';
