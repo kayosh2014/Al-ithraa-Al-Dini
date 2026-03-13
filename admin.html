@@ -1297,36 +1297,34 @@ async function toggleVideoStatus(pageId, newStatus, btn) {
   } catch(e){ toast('❌ '+e.message,'err'); }
 }
 
-async function quickSync(pageId, btn, cat) {
+async function quickSync(pageId, btn) {
   var isRunning = btn.classList.contains('btn-red');
-  cat = cat || btn.getAttribute('data-cat') || 'sync';
-  var isObs = cat === 'obs';
   try {
     if (!isRunning) {
+      // ابدأ التزامن
       var now = new Date().toISOString();
       await db('PATCH','pages',{sync_start:now},'id=eq.'+pageId);
       btn.className = 'btn btn-red btn-sm sync-btn';
-      btn.title = isObs ? 'إيقاف الترجمة' : 'أوقف التزامن';
-      btn.textContent = isObs ? '⏹ إيقاف الترجمة' : '⏹ 0:00';
+      btn.title = 'أوقف التزامن';
+      btn.textContent = '⏹ 0:00';
       _syncPageId = pageId;
       clearInterval(_syncInterval);
-      if (!isObs) {
-        var t0 = Date.now();
-        _syncInterval = setInterval(function(){
-          if (!document.body.contains(btn)) { clearInterval(_syncInterval); return; }
-          var s=Math.floor((Date.now()-t0)/1000), m=Math.floor(s/60); s=s%60;
-          btn.textContent = '⏹ '+m+':'+(s<10?'0':'')+s;
-        }, 1000);
-      }
-      toast(isObs ? '▶ بدأت الترجمة' : '▶ بدأ التزامن','ok');
+      var t0 = Date.now();
+      _syncInterval = setInterval(function(){
+        if (!document.body.contains(btn)) { clearInterval(_syncInterval); return; }
+        var s=Math.floor((Date.now()-t0)/1000), m=Math.floor(s/60); s=s%60;
+        btn.textContent = '⏹ '+m+':'+(s<10?'0':'')+s;
+      }, 1000);
+      toast('▶ بدأ التزامن','ok');
     } else {
+      // أوقف التزامن
       await db('PATCH','pages',{sync_start:null},'id=eq.'+pageId);
-      btn.className = 'btn btn-gold btn-sm sync-btn';
-      btn.title = isObs ? 'بدأ الترجمة' : 'ابدأ التزامن';
-      btn.textContent = isObs ? '▶ بدأ الترجمة' : '⚡ ترجمة';
+      btn.className = 'btn btn-green btn-sm sync-btn';
+      btn.title = 'ابدأ التزامن';
+      btn.textContent = '⚡ تزامن';
       clearInterval(_syncInterval);
       _syncPageId = null;
-      toast(isObs ? '⏹ توقفت الترجمة' : '⏹ توقف التزامن','ok');
+      toast('⏹ توقف التزامن','ok');
     }
   } catch(e){ toast('❌ '+e.message,'err'); }
 }
