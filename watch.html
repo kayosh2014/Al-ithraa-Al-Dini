@@ -497,7 +497,7 @@ function buildLangPanel() {
     }
 
     // ترجمة صوتية
-    if (l.yt_audio_url || l.youtube_audio || l.yt_audio || l.youtube_audio_url || l.audio_youtube_url || l.icecast_url || l.audio_url) {
+    if (l.yt_audio_url || l.icecast_url || l.audio_url) {
       hasAudio = true;
       var ba = document.createElement('button');
       ba.className = 'lp-lang'; ba.id = 'lp-aud-' + i;
@@ -616,17 +616,14 @@ function setAudio(idx) {
         if (typeof el.seekTo === 'function') { el.seekTo(0, true); el.unMute && el.unMute(); el.setVolume(ST.vol); el.playVideo(); }
         else { el.currentTime = 0; el.volume = ST.vol / 100; el.play().catch(function(){}); }
       } else {
-        // OBS-style playback for recorded
-if (typeof el.seekTo === 'function') {
-  el.seekTo(0, true);
-  if (typeof el.unMute === 'function') el.unMute();
-  if (typeof el.setVolume === 'function') el.setVolume(ST.vol);
-  if (ST.playing && typeof el.playVideo === 'function') el.playVideo();
-} else {
-  el.currentTime = 0;
-  el.volume = ST.vol/100;
-  if (ST.playing) el.play().catch(function(){});
-}
+        var _vt = ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0;
+        if (_vt < ST.audioDelay) {
+          el.volume = 0;
+          if (typeof el.pauseVideo === 'function') el.pauseVideo(); else el.pause();
+        } else {
+          var _at = _vt - ST.audioDelay;
+          if (typeof el.seekTo === 'function') { el.seekTo(_at, true); el.setVolume(ST.vol); el.playVideo(); }
+          else { el.currentTime = _at; el.volume = ST.vol / 100; if (ST.playing) el.play().catch(function(){}); }
         }
       }
     }
