@@ -847,13 +847,6 @@ function buildLangCard(l,i,cat){
     html+='<input class="lang-inp" placeholder="اسم Text Source في OBS" value="'+(l.obs_source||'')+'">';
     html+='<input class="lang-inp" placeholder="رابط Icecast للصوت (اختياري)" value="'+(l.icecast_url||'')+'">';
     html+='<input class="lang-inp" placeholder="رابط يوتيوب Unlisted للصوت (اختياري)" value="'+(l.yt_audio_url||'')+'">';
-    html+='<div class="file-row">';
-    html+='<label class="file-lbl" onclick="this.nextElementSibling.click()">📂 ASS/SRT</label>';
-    html+='<input type="file" accept=".ass,.ssa,.srt" style="display:none" onchange="handleFile(this,\'sub\')">';
-    html+='<span class="file-status">'+(l.subtitle_url?'✅ '+l.subtitle_url.split('/').pop():'لم يُختر ملف')+'</span>';
-    html+='<input type="hidden" value="'+(l.subtitle_url||'')+'">';
-    html+='</div>';
-    html+='<select class="lang-inp" style="margin-top:8px;margin-bottom:0"><option value="ass" '+(((l.subtitle_type||'ass').toLowerCase()==='ass')?'selected':'')+'>ASS</option><option value="srt" '+(((l.subtitle_type||'ass').toLowerCase()==='srt')?'selected':'')+'>SRT</option></select>';
   } else {
     html+='<div class="file-row">';
     html+='<label class="file-lbl" onclick="this.nextElementSibling.click()">📂 ASS/SRT</label>';
@@ -870,7 +863,7 @@ function buildLangCard(l,i,cat){
     html+='</div>';
 
     html+='<input class="yt-audio-inp" placeholder="🎬 رابط صوت من يوتيوب (اختياري)" value="'+(l.yt_audio_url||'')+'">';
-    html+='<select class="lang-inp" style="margin-top:8px;margin-bottom:0"><option value="ass" '+(((l.subtitle_type||'ass').toLowerCase()==='ass')?'selected':'')+'>ASS</option><option value="srt" '+(((l.subtitle_type||'ass').toLowerCase()==='srt')?'selected':'')+'>SRT</option></select>';
+    html+='<select class="lang-inp" style="margin-top:8px;margin-bottom:0"><option value="ass">ASS</option><option value="srt">SRT</option></select>';
   }
   html+='</div>';
   return html;
@@ -952,9 +945,6 @@ function collectLangs(){
       lang.obs_source=inps[1]?inps[1].value:'';
       lang.icecast_url=inps[2]?inps[2].value:'';
       lang.yt_audio_url=inps[3]?inps[3].value:'';
-      var rows=card.querySelectorAll('.file-row');
-      lang.subtitle_url=rows[0]?rows[0].querySelector('input[type=hidden]').value:'';
-      lang.subtitle_type=inps[4]?inps[4].value:'ass';
     } else {
       var rows=card.querySelectorAll('.file-row');
       lang.subtitle_url=rows[0]?rows[0].querySelector('input[type=hidden]').value:'';
@@ -1072,22 +1062,35 @@ async function loadPagesTable(){
       var catMap={recorded:'cat-recorded',sync:'cat-sync',obs:'cat-obs'};
       var catLbl={recorded:'مسجل',sync:'لايف متزامن',obs:'لايف OBS'};
       var tr=document.createElement('tr');
-      tr.innerHTML = `
-        <td class="page-title-cell" title="${escapeHtmlAttr(p.title_ar||'—')}">
-          <div class="page-title-main">${escapeHtml(p.title_ar||'—')}</div>
-          <div class="page-title-en" title="${escapeHtmlAttr(p.title_en||'')}">${escapeHtml(p.title_en||'')}</div>
-        </td>
-        <td><span class="page-meta-text" title="${escapeHtmlAttr(p.broadcast_type||'—')}">${escapeHtml(p.broadcast_type||'—')}</span></td>
-        <td><span class="page-meta-text" title="${escapeHtmlAttr(p.location||'—')}">${escapeHtml(p.location||'—')}</span></td>
-        <td><span class="cat-badge ${catMap[p.category]||''}">${escapeHtml(catLbl[p.category]||p.category||'—')}</span></td>
-        <td><span class="status-badge ${statusMap[p.status]||''}">${escapeHtml(statusLbl[p.status]||p.status||'—')}</span></td>
-        <td><div class="page-actions">
-          <button class="btn btn-gold btn-sm" onclick="editPage(${p.id})">✏</button>
-          <button class="btn btn-gray btn-sm" onclick="window.open('watch.html?page=${p.id}')">👁</button>
-          ${p.category==='sync' ? (p.status==='live' ? `<button class="btn btn-red btn-sm" onclick="toggleVideoStatus(${p.id},'ended',this)">⏹ فيديو</button>` : `<button class="btn btn-green btn-sm" onclick="toggleVideoStatus(${p.id},'live',this)">▶ فيديو</button>`) : ''}
-          ${((p.category==='sync' || p.category==='obs') && p.status==='live') ? (p.sync_start ? `<button class="btn btn-red btn-sm sync-btn" data-id="${p.id}" data-cat="${p.category||'sync'}" onclick="quickSync(${p.id},this,'${p.category||'sync'}')">${p.category==='obs'?'⏹ إيقاف الترجمة':'⏹ ترجمة'}</button>` : `<button class="btn btn-gold btn-sm sync-btn" data-id="${p.id}" data-cat="${p.category||'sync'}" onclick="quickSync(${p.id},this,'${p.category||'sync'}')">${p.category==='obs'?'▶ بدأ الترجمة':'⚡ ترجمة'}</button>`) : ''}
-          <button class="btn btn-red btn-sm" onclick="deletePage(${p.id})">🗑</button>
-        </div></td>`;
+      tr.innerHTML=
+        '<td class="page-title-cell" title="'+escapeHtmlAttr(p.title_ar||'—')+'">'+
+          '<div class="page-title-main">'+escapeHtml(p.title_ar||'—')+'</div>'+
+          '<div class="page-title-en" title="'+escapeHtmlAttr(p.title_en||'')+'">'+escapeHtml(p.title_en||'')+'</div></td>'+
+        '<td><span class="page-meta-text" title="'+escapeHtmlAttr(p.broadcast_type||'—')+'">'+escapeHtml(p.broadcast_type||'—')+'</span></td>'+
+        '<td><span class="page-meta-text" title="'+escapeHtmlAttr(p.location||'—')+'">'+escapeHtml(p.location||'—')+'</span></td>'+
+        '<td><span class="cat-badge '+(catMap[p.category]||'')+'">'+escapeHtml(catLbl[p.category]||p.category||'—')+'</span></td>'+
+        '<td><span class="status-badge '+(statusMap[p.status]||'')+'">'+escapeHtml(statusLbl[p.status]||p.status||'—')+'</span></td>'+
+        '<td><div class="page-actions">'+
+          '<button class="btn btn-gold btn-sm" onclick="editPage('+p.id+')">✏</button>'+
+          '<button class="btn btn-gray btn-sm" onclick="window.open(\'watch.html?page='+p.id+'\')">👁</button>'+
+          (p.category==='sync' ?
+            (p.status==='live' ?
+              '<button class="btn btn-red btn-sm" onclick="toggleVideoStatus('+p.id+',\'ended\',this)">⏹ فيديو</button>' :
+              '<button class="btn btn-green btn-sm" onclick="toggleVideoStatus('+p.id+',\'live\',this)">▶ فيديو</button>'
+            ) +
+            (p.status==='live' ?
+              (p.sync_start ?
+                '<button class="btn btn-red btn-sm sync-btn" data-id="'+p.id+'" onclick="quickSync('+p.id+',this)">⏹ ترجمة</button>' :
+                '<button class="btn btn-gold btn-sm sync-btn" data-id="'+p.id+'" onclick="quickSync('+p.id+',this)">⚡ ترجمة</button>'
+              ) : ''
+            ) : '')+
+          (p.category==='obs' && p.status==='live' ?
+            (p.obs_translation_started ?
+              '<button class="btn btn-red btn-sm" onclick="quickObsTranslation('+p.id+',false)">⏹ ترجمة</button>' :
+              '<button class="btn btn-gold btn-sm" onclick="quickObsTranslation('+p.id+',true)">▶ ترجمة</button>'
+            ) : '')+
+          '<button class="btn btn-red btn-sm" onclick="deletePage('+p.id+')">🗑</button>'+
+        '</div></td>';
       tbody.appendChild(tr);
     });
   } catch(e){console.error(e);}
@@ -1299,37 +1302,43 @@ async function toggleVideoStatus(pageId, newStatus, btn) {
   } catch(e){ toast('❌ '+e.message,'err'); }
 }
 
-async function quickSync(pageId, btn, cat) {
+async function quickSync(pageId, btn) {
   var isRunning = btn.classList.contains('btn-red');
-  cat = cat || btn.getAttribute('data-cat') || 'sync';
-  var isObs = cat === 'obs';
   try {
     if (!isRunning) {
+      // ابدأ التزامن
       var now = new Date().toISOString();
       await db('PATCH','pages',{sync_start:now},'id=eq.'+pageId);
       btn.className = 'btn btn-red btn-sm sync-btn';
-      btn.title = isObs ? 'إيقاف الترجمة' : 'أوقف التزامن';
-      btn.textContent = isObs ? '⏹ إيقاف الترجمة' : '⏹ 0:00';
+      btn.title = 'أوقف التزامن';
+      btn.textContent = '⏹ 0:00';
       _syncPageId = pageId;
       clearInterval(_syncInterval);
-      if (!isObs) {
-        var t0 = Date.now();
-        _syncInterval = setInterval(function(){
-          if (!document.body.contains(btn)) { clearInterval(_syncInterval); return; }
-          var s=Math.floor((Date.now()-t0)/1000), m=Math.floor(s/60); s=s%60;
-          btn.textContent = '⏹ '+m+':'+(s<10?'0':'')+s;
-        }, 1000);
-      }
-      toast(isObs ? '▶ بدأت الترجمة' : '▶ بدأ التزامن','ok');
+      var t0 = Date.now();
+      _syncInterval = setInterval(function(){
+        if (!document.body.contains(btn)) { clearInterval(_syncInterval); return; }
+        var s=Math.floor((Date.now()-t0)/1000), m=Math.floor(s/60); s=s%60;
+        btn.textContent = '⏹ '+m+':'+(s<10?'0':'')+s;
+      }, 1000);
+      toast('▶ بدأ التزامن','ok');
     } else {
+      // أوقف التزامن
       await db('PATCH','pages',{sync_start:null},'id=eq.'+pageId);
-      btn.className = 'btn btn-gold btn-sm sync-btn';
-      btn.title = isObs ? 'بدأ الترجمة' : 'ابدأ التزامن';
-      btn.textContent = isObs ? '▶ بدأ الترجمة' : '⚡ ترجمة';
+      btn.className = 'btn btn-green btn-sm sync-btn';
+      btn.title = 'ابدأ التزامن';
+      btn.textContent = '⚡ تزامن';
       clearInterval(_syncInterval);
       _syncPageId = null;
-      toast(isObs ? '⏹ توقفت الترجمة' : '⏹ توقف التزامن','ok');
+      toast('⏹ توقف التزامن','ok');
     }
+  } catch(e){ toast('❌ '+e.message,'err'); }
+}
+
+async function quickObsTranslation(pageId, shouldStart) {
+  try {
+    await db('PATCH','pages',{obs_translation_started:!!shouldStart},'id=eq.'+pageId);
+    toast(shouldStart ? '▶ بدأت ترجمة OBS' : '⏹ توقفت ترجمة OBS','ok');
+    await loadPagesTable();
   } catch(e){ toast('❌ '+e.message,'err'); }
 }
 
