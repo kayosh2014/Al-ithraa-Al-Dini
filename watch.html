@@ -393,9 +393,8 @@ async function loadPage(id) {
     if (ST.mode === 'sync' || ST.mode === 'recorded') {
       await loadSubtitleFiles();
       ST.langs.forEach(function(l, i) {
-        var ytAudio = getLangYtAudioUrl(l);
         if (l.audio_url) { var _a=new Audio(l.audio_url); _a.volume=0; _a.preload='auto'; ST.audioEls[i]=_a; }
-        else if (ytAudio) loadYTAudio(i, ytAudio);
+        else if (l.yt_audio_url) loadYTAudio(i, l.yt_audio_url);
         else if (l.icecast_url)  loadIcecast(i, l.icecast_url);
       });
     }
@@ -498,7 +497,7 @@ function buildLangPanel() {
     }
 
     // ترجمة صوتية
-    if (getLangYtAudioUrl(l) || l.icecast_url || l.audio_url) {
+    if (l.yt_audio_url || l.icecast_url || l.audio_url) {
       hasAudio = true;
       var ba = document.createElement('button');
       ba.className = 'lp-lang'; ba.id = 'lp-aud-' + i;
@@ -525,8 +524,7 @@ function buildLangPanel() {
 // ══ OBS — يقرأ obs_text من Supabase Realtime (السكربت Python هو من يكتب) ══
 function connectAllOBS() {
   ST.langs.forEach(function(l, i) {
-    var ytAudio = getLangYtAudioUrl(l);
-    if (ytAudio) loadYTAudio(i, ytAudio);
+    if (l.yt_audio_url) loadYTAudio(i, l.yt_audio_url);
     else if (l.icecast_url) loadIcecast(i, l.icecast_url);
   });
   startObsRealtime();
@@ -561,28 +559,53 @@ function updateObsDot(idx, on) {
   if (el) el.className = 'obs-lang-dot' + (on?' on':'');
 }
 
-function getLangYtAudioUrl(l) {
-  if (!l) return '';
-  return l.yt_audio_url || l.youtube_audio || l.yt_audio || l.youtube_audio_url || l.audio_youtube_url || '';
-}
-
 function loadYTAudio(idx, url) {
-  var id = extractYTId(url); if (!id) return;
+  var id = extractYTId(url);
+  if (!id) return;
+
+  var old = document.getElementById('yt-audio-' + idx);
+  if (old) old.remove();
+
   var div = document.createElement('div');
-  div.style.display = 'none'; div.id = 'yt-audio-' + idx;
+  div.style.position = 'fixed';
+  div.style.left = '-99999px';
+  div.style.top = '-99999px';
+  div.style.width = '1px';
+  div.style.height = '1px';
+  div.id = 'yt-audio-' + idx;
   document.body.appendChild(div);
+
   var t = setInterval(function() {
     if (!window.YT || !window.YT.Player) return;
     clearInterval(t);
+
     new YT.Player('yt-audio-' + idx, {
       videoId: id,
-      playerVars: { autoplay: 0, controls: 0, mute: 1 },
-      events: { onReady: function(e) {
-        e.target.setVolume(0);
-        ST.audioEls[idx] = e.target;
-      }}
+      playerVars: {
+        autoplay: 0,
+        controls: 0,
+        rel: 0,
+        modestbranding: 1,
+        playsinline: 1
+      },
+      events: {
+        onReady: function(e) {
+          ST.audioEls[idx] = e.target;
+
+          try {
+            e.target.mute && e.target.mute();
+            e.target.setVolume && e.target.setVolume(0);
+            e.target.pauseVideo && e.target.pauseVideo();
+          } catch(_) {}
+
+          if (ST.pendingAudioIdx === idx || ST.activeAudio === idx) {
+            ST.pendingAudioIdx = null;
+            setTimeout(function(){ setAudio(idx); }, 80);
+          }
+        }
+      }
     });
-  }, 500);
+  }, 300);
 }
 
 function loadIcecast(idx, url) {
@@ -594,6 +617,11 @@ function loadIcecast(idx, url) {
 // ══ التحكم بالصوت ══
 function setAudio(idx) {
   ST.activeAudio = idx;
+  if (idx >= 0 && !ST.audioEls[idx]) {
+    ST.pendingAudioIdx = idx;
+    document.getElementById('lang-btn-txt').textContent = '⏳ جاري تجهيز الصوت';
+    return;
+  }
   // أوقف كل الصوتيات
   Object.keys(ST.audioEls).forEach(function(i) {
     var el = ST.audioEls[i];
@@ -613,40 +641,46 @@ function setAudio(idx) {
   } else {
     var el = ST.audioEls[idx];
     if (el) {
-      var lang = ST.langs[idx] || {};
-      var hasYtOptional = !!getLangYtAudioUrl(lang) && typeof el.seekTo === 'function';
-
-      // في وضع sync: إذا كان المصدر يوتيوب اختياري جهّزه فقط، وإلا أوقفه حتى يبدأ التزامن
+      // في وضع sync — أوقف الصوت دائماً، الـ loop وحده يشغّله بعد syncStart + audioDelay
       if (ST.mode === 'sync') {
-        if (hasYtOptional) {
-          if (typeof el.pauseVideo === 'function') el.pauseVideo(); else el.pause();
-          el.unMute && el.unMute();
-          if (typeof el.setVolume === 'function') el.setVolume(ST.vol);
-          else el.volume = ST.vol / 100;
-        } else {
-          el.volume = 0;
-          if (typeof el.setVolume === 'function') el.setVolume(0);
-          if (typeof el.pauseVideo === 'function') el.pauseVideo(); else el.pause();
-        }
+        el.volume = 0;
+        if (typeof el.setVolume === 'function') el.setVolume(0);
+        if (typeof el.pauseVideo === 'function') el.pauseVideo(); else el.pause();
       } else if (ST.mode === 'obs') {
         // obs — شغّل الصوت مباشرة من البداية
         if (typeof el.seekTo === 'function') { el.seekTo(0, true); el.unMute && el.unMute(); el.setVolume(ST.vol); el.playVideo(); }
         else { el.currentTime = 0; el.volume = ST.vol / 100; el.play().catch(function(){}); }
       } else {
-        // recorded
-        if (hasYtOptional) {
-          // نفس فكرة OBS لايف: ابدأ من البداية مباشرة لصوت يوتيوب الاختياري
-          if (typeof el.seekTo === 'function') { el.seekTo(0, true); el.unMute && el.unMute(); el.setVolume(ST.vol); el.playVideo(); }
-          else { el.currentTime = 0; el.volume = ST.vol / 100; el.play().catch(function(){}); }
-        } else {
-          var _vt = ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0;
-          if (_vt < ST.audioDelay) {
-            el.volume = 0;
-            if (typeof el.pauseVideo === 'function') el.pauseVideo(); else el.pause();
+        if (typeof el.seekTo === 'function') {
+          if (ST.mode === 'recorded') {
+            el.seekTo(0, true);
+            el.unMute && el.unMute();
+            el.setVolume && el.setVolume(ST.vol);
+            el.playVideo && el.playVideo();
+          } else if (ST.mode === 'sync') {
+            el.seekTo(0, true);
+            el.unMute && el.unMute();
+            el.setVolume && el.setVolume(ST.vol);
+            el.pauseVideo && el.pauseVideo();
           } else {
-            var _at = _vt - ST.audioDelay;
-            if (typeof el.seekTo === 'function') { el.seekTo(_at, true); el.unMute && el.unMute(); el.setVolume(ST.vol); el.playVideo(); }
-            else { el.currentTime = _at; el.volume = ST.vol / 100; if (ST.playing) el.play().catch(function(){}); }
+            el.seekTo(0, true);
+            el.unMute && el.unMute();
+            el.setVolume && el.setVolume(ST.vol);
+            el.playVideo && el.playVideo();
+          }
+        } else {
+          if (ST.mode === 'recorded') {
+            el.currentTime = 0;
+            el.volume = ST.vol / 100;
+            if (ST.playing) el.play().catch(function(){});
+          } else if (ST.mode === 'sync') {
+            el.currentTime = 0;
+            el.volume = ST.vol / 100;
+            el.pause();
+          } else {
+            el.currentTime = 0;
+            el.volume = ST.vol / 100;
+            el.play().catch(function(){});
           }
         }
       }
@@ -712,7 +746,7 @@ function startLoop() {
           // recorded: شغّل بعد audioDelay من الفيديو
           if (t >= ST.audioDelay && _isPaused) {
             var _at = t - ST.audioDelay;
-            if (typeof _ael.seekTo === 'function') { _ael.seekTo(_at, true); _ael.unMute && _ael.unMute(); _ael.setVolume(ST.vol); _ael.playVideo(); }
+            if (typeof _ael.seekTo === 'function') { _ael.seekTo(_at, true); _ael.setVolume(ST.vol); _ael.playVideo(); }
             else { _ael.currentTime = _at; _ael.volume = ST.vol / 100; _ael.play().catch(function(){}); }
           }
         } else if (ST.mode === 'sync' && ST.syncStart) {
@@ -1035,8 +1069,28 @@ function assTime(t){if(!t)return 0;var p=t.split(':');return parseInt(p[0])*3600
 // ══ extract YouTube ID ══
 function extractYTId(url) {
   if (!url) return '';
-  var m = url.match(/(?:v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{11})/);
-  return m ? m[1] : '';
+  try {
+    var u = new URL(url);
+
+    if (u.hostname.includes('youtu.be')) {
+      return (u.pathname || '').replace(/^\/+/, '').split('/')[0] || '';
+    }
+
+    var v = u.searchParams.get('v');
+    if (v) return v;
+
+    var parts = (u.pathname || '').split('/').filter(Boolean);
+    var embedIdx = parts.indexOf('embed');
+    if (embedIdx >= 0 && parts[embedIdx + 1]) return parts[embedIdx + 1];
+
+    var shortsIdx = parts.indexOf('shorts');
+    if (shortsIdx >= 0 && parts[shortsIdx + 1]) return parts[shortsIdx + 1];
+
+    return '';
+  } catch(e) {
+    var m = String(url).match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([A-Za-z0-9_-]{6,})/);
+    return m ? m[1] : '';
+  }
 }
 
 // ══ UI helpers ══
