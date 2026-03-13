@@ -495,6 +495,7 @@ select.inp option{background:var(--bg3);color:var(--white);}
           <!-- تأخير الترجمة — لفئة مسجل فقط -->
           <div id="delay-settings-wrap" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
             <div style="font-size:.75rem;color:var(--silver);margin-bottom:12px">⏱ تأخير بدء الترجمة والصوت</div>
+            <div class="delay-obs-hint" style="display:none;font-size:.68rem;color:var(--silver);margin:-4px 0 12px 0">في لايف OBS ينطبق هذا التأخير على ملف الترجمة ASS/SRT وعلى الصوت الاختياري من يوتيوب</div>
 
             <!-- صف العناوين -->
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:8px">
@@ -800,7 +801,9 @@ function setCat(cat,el){
   document.querySelectorAll('.type-chip').forEach(function(c){c.classList.remove('active');});
   if(el) el.classList.add('active');
   document.getElementById('obs-settings-wrap').style.display=cat==='obs'?'block':'none';
-  document.getElementById('delay-settings-wrap').style.display=(cat==='recorded'||cat==='sync')?'block':'none';
+  document.getElementById('delay-settings-wrap').style.display=(cat==='recorded'||cat==='sync'||cat==='obs')?'block':'none';
+  var delayHint=document.querySelector('#delay-settings-wrap .delay-obs-hint');
+  if(delayHint) delayHint.style.display=cat==='obs'?'block':'none';
   // أعد رسم بطاقات اللغات الموجودة بالنوع الجديد
   var wrap=document.getElementById('langs-wrap');
   var count=wrap.querySelectorAll('.lang-card').length||2;

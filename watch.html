@@ -608,18 +608,15 @@ function setAudio(idx) {
         el.volume = 0;
         if (typeof el.setVolume === 'function') el.setVolume(0);
         if (typeof el.pauseVideo === 'function') el.pauseVideo(); else el.pause();
-      } else if (ST.mode === 'obs') {
-        // obs — شغّل الصوت مباشرة من البداية
-        if (typeof el.seekTo === 'function') { el.seekTo(0, true); el.unMute && el.unMute(); el.setVolume(ST.vol); el.playVideo(); }
-        else { el.currentTime = 0; el.volume = ST.vol / 100; el.play().catch(function(){}); }
       } else {
         var _vt = ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0;
         if (_vt < ST.audioDelay) {
           el.volume = 0;
+          if (typeof el.setVolume === 'function') el.setVolume(0);
           if (typeof el.pauseVideo === 'function') el.pauseVideo(); else el.pause();
         } else {
           var _at = _vt - ST.audioDelay;
-          if (typeof el.seekTo === 'function') { el.seekTo(_at, true); el.setVolume(ST.vol); el.playVideo(); }
+          if (typeof el.seekTo === 'function') { el.seekTo(_at, true); el.unMute && el.unMute(); el.setVolume(ST.vol); if (ST.playing) el.playVideo(); }
           else { el.currentTime = _at; el.volume = ST.vol / 100; if (ST.playing) el.play().catch(function(){}); }
         }
       }
@@ -691,11 +688,11 @@ function startLoop() {
         var _isPaused = typeof _ael.getPlayerState === 'function'
           ? _ael.getPlayerState() !== 1
           : _ael.paused;
-        if (ST.mode === 'recorded') {
-          // recorded: شغّل بعد audioDelay من الفيديو
+        if (ST.mode === 'recorded' || ST.mode === 'obs') {
+          // recorded/obs: شغّل بعد audioDelay من وقت الفيديو
           if (t >= ST.audioDelay && _isPaused) {
             var _at = t - ST.audioDelay;
-            if (typeof _ael.seekTo === 'function') { _ael.seekTo(_at, true); _ael.setVolume(ST.vol); _ael.playVideo(); }
+            if (typeof _ael.seekTo === 'function') { _ael.seekTo(_at, true); _ael.unMute && _ael.unMute(); _ael.setVolume(ST.vol); _ael.playVideo(); }
             else { _ael.currentTime = _at; _ael.volume = ST.vol / 100; _ael.play().catch(function(){}); }
           }
         } else if (ST.mode === 'sync' && ST.syncStart) {
