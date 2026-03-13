@@ -353,7 +353,6 @@ async function initWatch() {
   if (pageId) {
     await loadPage(pageId);
   } else {
-    // بدون ID — ابحث عن أي صفحة جارية
     await checkLivePage();
   }
 }
@@ -373,7 +372,6 @@ async function loadPage(id) {
     ST.subDelay   = parseFloat(page.sub_delay   || 0);
     ST.audioDelay = parseFloat(page.audio_delay || 0);
 
-    // تحديد الوضع
     if (page.status === 'upcoming') {
       hideLoader();
       showNoLive('يبدأ البث قريباً', page.title_ar || '');
@@ -383,7 +381,7 @@ async function loadPage(id) {
     if (page.status === 'ended' || page.status === 'recorded') {
       ST.mode = 'recorded';
     } else {
-      ST.mode = page.category || 'sync'; // live → sync أو obs
+      ST.mode = page.category || 'sync';
     }
 
     document.getElementById('watch-title').textContent = page.title_ar || page.title_en || 'بث مباشر';
@@ -398,14 +396,12 @@ async function loadPage(id) {
         else if (l.icecast_url)  loadIcecast(i, l.icecast_url);
       });
     }
-    // sync_start — لا نأخذه من قاعدة البيانات عند التحميل أبداً
-    // الـ realtime وحده هو من يفعّله عند ضغط المشرف "بدأ التزامن"
+
     ST.syncStart = null;
-    ST.activeAudio = -2;  // الصوت الأصلي افتراضياً
-    ST.activeSub = -1;    // لا ترجمة نصية
+    ST.activeAudio = -2;
+    ST.activeSub = -1;
     buildLangPanel();
-    // sync — لا تشغّل الترجمة حتى يضغط المشرف "بدأ التزامن"
-    // recorded — اختر أول ترجمة تلقائياً فقط
+
     if (ST.mode === 'recorded') {
       for (var _si=0; _si<ST.langs.length; _si++) {
         if (ST.subs[_si] && ST.subs[_si].events && ST.subs[_si].events.length) { setSub(_si); break; }
@@ -422,7 +418,6 @@ async function loadPage(id) {
     if (ST.mode === 'obs') connectAllOBS();
 
     hideLoader();
-    // ابدأ الاستماع دائماً في وضع sync بغض النظر عن isLive
     if (ST.mode === 'sync' || isLive) startRealtimePage(id);
   } catch(e) {
     hideLoader();
@@ -448,8 +443,6 @@ async function checkLivePage() {
   }
 }
 
-// ══ تم نقل المنطق إلى loadPage و checkLivePage ══
-
 // ══ تحميل ملفات الترجمة ══
 async function loadSubtitleFiles() {
   ST.subs = [];
@@ -459,7 +452,7 @@ async function loadSubtitleFiles() {
     if (!url) { ST.subs.push(null); continue; }
     try {
       var ctrl = new AbortController();
-      var tid = setTimeout(function(){ ctrl.abort(); }, 8000); // timeout 8 ثواني
+      var tid = setTimeout(function(){ ctrl.abort(); }, 8000);
       var r = await fetch(url, { signal: ctrl.signal });
       clearTimeout(tid);
       var txt = await r.text();
@@ -478,7 +471,6 @@ function buildLangPanel() {
 
   var hasAudio = false, hasSub = false;
 
-  // زر الصوت الأصلي
   var origAud = document.createElement('button');
   origAud.className = 'lp-orig active'; origAud.id = 'lp-orig-audio';
   origAud.textContent = '🎙 الصوت الأصلي';
@@ -486,7 +478,6 @@ function buildLangPanel() {
   audEl.appendChild(origAud);
 
   ST.langs.forEach(function(l, i) {
-    // ترجمة نصية
     if (ST.subs[i] || ST.mode === 'obs') {
       hasSub = true;
       var b = document.createElement('button');
@@ -496,7 +487,6 @@ function buildLangPanel() {
       subEl.appendChild(b);
     }
 
-    // ترجمة صوتية
     if (l.yt_audio_url || l.icecast_url || l.audio_url) {
       hasAudio = true;
       var ba = document.createElement('button');
@@ -507,7 +497,6 @@ function buildLangPanel() {
     }
   });
 
-  // زر إيقاف الترجمة
   var offSub = document.createElement('button');
   offSub.className = 'lp-lang'; offSub.id = 'lp-sub-off';
   offSub.textContent = '🚫 إيقاف الترجمة';
@@ -517,11 +506,10 @@ function buildLangPanel() {
   if (!hasSub) subEl.innerHTML = '<div class="lp-empty">لا تتوفر ترجمة نصية</div>';
   if (!hasAudio) audEl.innerHTML += '<div class="lp-empty" style="margin-top:8px">لا تتوفر ترجمة صوتية</div>';
 
-  // إخفاء تبويب الصوت إن لم يكن فيه محتوى
   document.getElementById('tab-audio').style.display = hasAudio ? '' : 'none';
 }
 
-// ══ OBS — يقرأ obs_text من Supabase Realtime (السكربت Python هو من يكتب) ══
+// ══ OBS ══
 function connectAllOBS() {
   ST.langs.forEach(function(l, i) {
     if (l.yt_audio_url) loadYTAudio(i, l.yt_audio_url);
@@ -540,7 +528,6 @@ function startObsRealtime() {
     var msg = JSON.parse(e.data);
     if (!msg.payload || !msg.payload.record || msg.payload.type !== 'UPDATE') return;
     var r = msg.payload.record;
-    // ابحث عن اللغة المناسبة
     ST.langs.forEach(function(l, i) {
       if (l.id && String(l.id) === String(r.id) && r.obs_text !== undefined) {
         ST.obsTexts[i] = r.obs_text || '';
@@ -592,14 +579,11 @@ function loadYTAudio(idx, url) {
         onReady: function(e) {
           ST.audioEls[idx] = e.target;
           try {
-            var ifr = e.target.getIframe && e.target.getIframe();
-            if (ifr) ifr.setAttribute('allow', 'autoplay; encrypted-media');
-          } catch(_){ }
-          try {
             e.target.mute && e.target.mute();
             e.target.setVolume && e.target.setVolume(0);
             e.target.pauseVideo && e.target.pauseVideo();
-          } catch(_){ }
+          } catch(_) {}
+
           if (ST.pendingAudioIdx === idx || ST.activeAudio === idx) {
             ST.pendingAudioIdx = null;
             setTimeout(function(){ setAudio(idx); }, 80);
@@ -616,7 +600,7 @@ function loadIcecast(idx, url) {
   ST.audioEls[idx] = a;
 }
 
-// ══ التحكم بالصوت ══
+// ══ التحكم بالصوت — التعديل الرئيسي هنا ══
 function setAudio(idx) {
   ST.activeAudio = idx;
   if (idx >= 0 && !ST.audioEls[idx]) {
@@ -624,15 +608,15 @@ function setAudio(idx) {
     document.getElementById('lang-btn-txt').textContent = '⏳ جاري تجهيز الصوت';
     return;
   }
-  // أوقف كل الصوتيات
+
   Object.keys(ST.audioEls).forEach(function(i) {
     var el = ST.audioEls[i];
     if (!el) return;
     if (typeof el.pauseVideo === 'function') { el.pauseVideo(); el.setVolume(0); }
     else { el.pause(); el.volume = 0; }
   });
+
   if (idx === -2) {
-    // أصلي — تأكد رفع الكتم وضبط الصوت
     if (ytPlayer && typeof ytPlayer.unMute === 'function') { ytPlayer.unMute(); ytPlayer.setVolume(ST.vol); }
     document.getElementById('lang-btn-txt').textContent = 'الصوت الأصلي';
     updateLangBtnHighlight('audio', -2);
@@ -643,50 +627,54 @@ function setAudio(idx) {
   } else {
     var el = ST.audioEls[idx];
     if (el) {
-      // في وضع sync — أوقف الصوت دائماً، الـ loop وحده يشغّله بعد syncStart + audioDelay
       if (ST.mode === 'sync') {
         el.volume = 0;
         if (typeof el.setVolume === 'function') el.setVolume(0);
         if (typeof el.pauseVideo === 'function') el.pauseVideo(); else el.pause();
       } else if (ST.mode === 'obs') {
-        // obs — شغّل الصوت مباشرة من البداية
-        if (typeof el.seekTo === 'function') {
-          el.seekTo(0, true);
-          el.unMute && el.unMute();
-          el.setVolume && el.setVolume(ST.vol);
-          el.playVideo && el.playVideo();
-        } else {
-          el.currentTime = 0;
-          el.volume = ST.vol / 100;
-          el.play().catch(function(){});
-        }
-      } else if (ST.mode === 'recorded') {
-        // recorded — شغّل يوتيوب مباشرة مثل obs
-        if (typeof el.seekTo === 'function') {
-          el.seekTo(0, true);
-          el.unMute && el.unMute();
-          el.setVolume && el.setVolume(ST.vol);
-          el.playVideo && el.playVideo();
-        } else {
-          el.currentTime = 0;
-          el.volume = ST.vol / 100;
-          if (ST.playing) el.play().catch(function(){});
-        }
+        if (typeof el.seekTo === 'function') { el.seekTo(0, true); el.unMute && el.unMute(); el.setVolume(ST.vol); el.playVideo(); }
+        else { el.currentTime = 0; el.volume = ST.vol / 100; el.play().catch(function(){}); }
       } else {
-        // sync — جهّزه فقط، والـ loop يشغّله بعد syncStart
-        if (typeof el.seekTo === 'function') {
-          el.seekTo(0, true);
-          el.unMute && el.unMute();
-          el.setVolume && el.setVolume(ST.vol);
-          el.pauseVideo && el.pauseVideo();
-        } else {
-          el.currentTime = 0;
-          el.volume = ST.vol / 100;
-          el.pause();
+        // ── التعديل الجديد: حساب الوقت الصحيح من الفيديو الرئيسي ──
+        var currentT = (ytPlayer && typeof ytPlayer.getCurrentTime === 'function') 
+                       ? ytPlayer.getCurrentTime() : 0;
+        var targetTime = Math.max(0, currentT - ST.audioDelay);
+
+        if (typeof el.seekTo === 'function') {  // YouTube Player
+          if (ST.mode === 'recorded') {
+            el.seekTo(targetTime, true);
+            el.unMute && el.unMute();
+            el.setVolume && el.setVolume(ST.vol);
+            el.playVideo && el.playVideo();
+          } else if (ST.mode === 'sync') {
+            el.seekTo(targetTime, true);
+            el.unMute && el.unMute();
+            el.setVolume && el.setVolume(0);
+            el.pauseVideo && el.pauseVideo();
+          } else {
+            el.seekTo(targetTime, true);
+            el.unMute && el.unMute();
+            el.setVolume && el.setVolume(ST.vol);
+            el.playVideo && el.playVideo();
+          }
+        } else {  // HTML5 Audio
+          if (ST.mode === 'recorded') {
+            el.currentTime = targetTime;
+            el.volume = ST.vol / 100;
+            if (ST.playing) el.play().catch(function(){});
+          } else if (ST.mode === 'sync') {
+            el.currentTime = targetTime;
+            el.volume = ST.vol / 100;
+            el.pause();
+          } else {
+            el.currentTime = targetTime;
+            el.volume = ST.vol / 100;
+            el.play().catch(function(){});
+          }
         }
       }
     }
-    // feedback — الصوت الأصلي في الخلفية
+
     if (ytPlayer && typeof ytPlayer.mute === 'function') {
       if (ST.feedback <= 0) ytPlayer.mute();
       else { ytPlayer.unMute(); ytPlayer.setVolume(ST.feedback); }
@@ -695,7 +683,7 @@ function setAudio(idx) {
     document.getElementById('lang-btn-txt').textContent = '🔊 ' + name;
     updateLangBtnHighlight('audio', idx);
   }
-  // تحديث الأزرار
+
   document.querySelectorAll('#audio-langs .lp-lang, .lp-orig').forEach(function(b){ b.classList.remove('active'); });
   if (idx === -2 && document.getElementById('lp-orig-audio')) document.getElementById('lp-orig-audio').classList.add('active');
   if (idx >= 0 && document.getElementById('lp-aud-'+idx)) document.getElementById('lp-aud-'+idx).classList.add('active');
@@ -717,41 +705,50 @@ function setSub(idx) {
 
 function updateLangBtnHighlight(type, idx) {}
 
-// ══ loop الرئيسي ══
+// ══ loop الرئيسي — مع تصحيح مستمر للصوت في Recorded ══
 function startLoop() {
   cancelAnimationFrame(ST.rafId);
   function loop() {
     var t = ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0;
     if (ytPlayer && ytPlayer.getCurrentTime) updateSeek(t);
 
-    // ── الترجمة النصية ──
     if (ST.activeSub >= 0 && ST.mode !== 'obs') {
       if (ST.mode === 'sync' && ST.syncStart) {
-        // sync: الوقت من لحظة ضغط التزامن + تأخير
         var elapsed = (Date.now() - ST.syncStart) / 1000 - ST.subDelay;
         drawSubFromFile(Math.max(0, elapsed));
       } else if (ST.mode === 'recorded') {
-        // recorded: الوقت من الفيديو + تأخير
         drawSubFromFile(Math.max(0, t - ST.subDelay));
       }
     }
 
-    // ── الترجمة الصوتية ──
     if (ST.activeAudio >= 0 && ST.playing && (ST.mode !== 'sync' || ST.syncStart)) {
       var _ael = ST.audioEls[ST.activeAudio];
       if (_ael) {
         var _isPaused = typeof _ael.getPlayerState === 'function'
           ? _ael.getPlayerState() !== 1
           : _ael.paused;
+
         if (ST.mode === 'recorded') {
-          // recorded: شغّل بعد audioDelay من الفيديو
-          if (t >= ST.audioDelay && _isPaused) {
-            var _at = t - ST.audioDelay;
-            if (typeof _ael.seekTo === 'function') { _ael.seekTo(_at, true); _ael.unMute && _ael.unMute(); _ael.setVolume && _ael.setVolume(ST.vol); _ael.playVideo && _ael.playVideo(); }
-            else { _ael.currentTime = _at; _ael.volume = ST.vol / 100; _ael.play().catch(function(){}); }
+          // ── التعديل الجديد: تصحيح مستمر + تشغيل فوري ──
+          var desired = t - ST.audioDelay;
+          if (desired < 0) desired = 0;
+
+          var currentAudioTime = typeof _ael.getCurrentTime === 'function' 
+                                 ? _ael.getCurrentTime() 
+                                 : (_ael.currentTime || 0);
+
+          if (_isPaused || Math.abs(currentAudioTime - desired) > 1.5) {
+            if (typeof _ael.seekTo === 'function') {
+              _ael.seekTo(desired, true);
+              _ael.setVolume(ST.vol);
+              _ael.playVideo && _ael.playVideo();
+            } else {
+              _ael.currentTime = desired;
+              _ael.volume = ST.vol / 100;
+              _ael.play().catch(function(){});
+            }
           }
         } else if (ST.mode === 'sync' && ST.syncStart) {
-          // sync: شغّل بعد audioDelay من لحظة التزامن — مرة واحدة فقط
           var elapsed2 = (Date.now() - ST.syncStart) / 1000;
           if (elapsed2 >= ST.audioDelay && _isPaused) {
             var _at2 = elapsed2 - ST.audioDelay;
@@ -775,7 +772,7 @@ function startLoop() {
   loop();
 }
 
-// ══ رسم الترجمة من ملف ══
+// ══ رسم الترجمة ══
 function drawSubFromFile(t) {
   var sub = ST.subs[ST.activeSub];
   if (!sub || !sub.events) { clearCanvas(); return; }
@@ -945,7 +942,7 @@ function switchLpTab(type, el) {
   document.getElementById('sec-'+type).classList.add('active');
 }
 
-// ══ Realtime — يستمع لتغييرات الصفحة ══
+// ══ Realtime ══
 function startRealtimePage(pageId) {
   var url = SUPA_URL.replace('https://','wss://') + '/realtime/v1/websocket?apikey=' + SUPA_KEY + '&vsn=1.0.0';
   var ws = new WebSocket(url);
@@ -954,13 +951,10 @@ function startRealtimePage(pageId) {
   };
   ws.onmessage = function(e) {
     var msg = JSON.parse(e.data);
-    console.log('[RT raw]', JSON.stringify(msg).substring(0, 200));
-    // فقط رسائل UPDATE الحقيقية من postgres_changes
     if (!msg.payload || !msg.payload.record || msg.payload.type !== 'UPDATE') return;
     var s = msg.payload.record;
-    console.log('[RT] id='+s.id+' pageId='+pageId+' sync_start='+s.sync_start+' status='+s.status);
     if (String(s.id) !== String(pageId)) return;
-    // تغيير الحالة
+
     if (s.status === 'upcoming') {
       showNoLive('يبدأ البث قريباً', s.title_ar || '');
       document.getElementById('player-wrap').style.display = 'none';
@@ -971,26 +965,20 @@ function startRealtimePage(pageId) {
       document.getElementById('no-live').classList.remove('show');
       loadPage(pageId);
     }
-    // تحديث sync_start
+
     if (typeof s.sync_start !== 'undefined') {
       if (s.sync_start && ST.mode === 'sync') {
-        // سجّل وقت البدء — الـ loop يتكفل بالترجمة والصوت
-        ST.syncStart = Date.now(); // وقت الاستلام وليس وقت الـ server
-        // اختر أول ترجمة نصية تلقائياً إذا لم يختر المشاهد
+        ST.syncStart = Date.now();
         if (ST.activeSub < 0) {
           for (var _ri=0; _ri<ST.langs.length; _ri++) {
             if (ST.subs[_ri] && ST.subs[_ri].events && ST.subs[_ri].events.length) { setSub(_ri); break; }
           }
         }
-        // كتم الفيديو الأصلي إذا اختار المشاهد لغة مترجمة
         if (ST.activeAudio >= 0 && ytPlayer) {
-          if (ytPlayer && typeof ytPlayer.mute === 'function') {
-            if (ST.feedback <= 0) ytPlayer.mute();
-            else { ytPlayer.unMute(); ytPlayer.setVolume(ST.feedback); }
-          }
+          if (ST.feedback <= 0) ytPlayer.mute();
+          else { ytPlayer.unMute(); ytPlayer.setVolume(ST.feedback); }
         }
       } else {
-        // أوقف التزامن — أوقف كل شيء
         ST.syncStart = null;
         ST.activeSub = -1;
         clearCanvas();
@@ -1003,7 +991,6 @@ function startRealtimePage(pageId) {
         document.getElementById('lang-btn-txt').textContent = 'الصوت الأصلي';
       }
     }
-    // تحديث feedback
     if (s.feedback !== undefined) {
       ST.feedback = s.feedback;
       if (ST.activeAudio >= 0 && ytPlayer && ytPlayer.setVolume) ytPlayer.setVolume(ST.feedback);
@@ -1012,7 +999,7 @@ function startRealtimePage(pageId) {
   ws.onclose = function() { setTimeout(function(){ startRealtimePage(pageId); }, 5000); };
 }
 
-// ══ polling البث كل 10 ثواني ══
+// ══ polling ══
 var _pollTimer;
 function startPollingLive() {
   clearInterval(_pollTimer);
@@ -1029,7 +1016,7 @@ function startPollingLive() {
   }, 10000);
 }
 
-// ══ parse SRT ══
+// ══ parse SRT / ASS ══
 function parseSRT(text) {
   var events=[];
   text.trim().split(/\r?\n\r?\n/).forEach(function(block) {
@@ -1042,7 +1029,6 @@ function parseSRT(text) {
 }
 function srts(t){t=t.replace(',','.');var p=t.split(':');return parseInt(p[0])*3600+parseInt(p[1])*60+parseFloat(p[2]);}
 
-// ══ parse ASS ══
 function parseASS(text) {
   var events=[],lines=text.split(/\r?\n/),inEv=false,fmt=[];
   lines.forEach(function(line) {
@@ -1072,9 +1058,7 @@ function extractYTId(url) {
   if (!url) return '';
   try {
     var u = new URL(url);
-    if ((u.hostname || '').includes('youtu.be')) {
-      return (u.pathname || '').replace(/^\/+/, '').split('/')[0] || '';
-    }
+    if (u.hostname.includes('youtu.be')) return (u.pathname || '').replace(/^\/+/, '').split('/')[0] || '';
     var v = u.searchParams.get('v');
     if (v) return v;
     var parts = (u.pathname || '').split('/').filter(Boolean);
