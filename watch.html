@@ -521,7 +521,7 @@ function buildLangPanel() {
   document.getElementById('tab-audio').style.display = hasAudio ? '' : 'none';
 }
 
-// ══ OBS — يقرأ obs_text من Supabase Realtime (p-r) ══
+// ══ OBS — يقرأ obs_text من Supabase Realtime (السكربت Python هو من يكتب) ══
 function connectAllOBS() {
   ST.langs.forEach(function(l, i) {
     if (l.yt_audio_url) loadYTAudio(i, l.yt_audio_url);
@@ -606,24 +606,31 @@ function setAudio(idx) {
   } else {
     var el = ST.audioEls[idx];
     if (el) {
-      // في وضع sync — أوقف الصوت دائماً، الـ loop وحده يشغّله بعد syncStart + audioDelay
-      if (ST.mode === 'sync') {
-        el.volume = 0;
-        if (typeof el.setVolume === 'function') el.setVolume(0);
-        if (typeof el.pauseVideo === 'function') el.pauseVideo(); else el.pause();
+      // إذا كان الصوت الاختياري من يوتيوب فشغّله مباشرة مثل حل OBS
+      if (typeof el.seekTo === 'function') {
+        el.seekTo(0, true);
+        el.unMute && el.unMute();
+        el.setVolume && el.setVolume(ST.vol);
+        el.playVideo && el.playVideo();
       } else if (ST.mode === 'obs') {
         // obs — شغّل الصوت مباشرة من البداية
-        if (typeof el.seekTo === 'function') { el.seekTo(0, true); el.unMute && el.unMute(); el.setVolume(ST.vol); el.playVideo(); }
-        else { el.currentTime = 0; el.volume = ST.vol / 100; el.play().catch(function(){}); }
+        el.currentTime = 0;
+        el.volume = ST.vol / 100;
+        el.play().catch(function(){});
+      } else if (ST.mode === 'sync') {
+        // للصوت العادي في sync أبقه متوقفاً حتى لا يتغير أي سلوك آخر
+        el.volume = 0;
+        el.pause();
       } else {
         var _vt = ytPlayer && ytPlayer.getCurrentTime ? ytPlayer.getCurrentTime() : 0;
         if (_vt < ST.audioDelay) {
           el.volume = 0;
-          if (typeof el.pauseVideo === 'function') el.pauseVideo(); else el.pause();
+          el.pause();
         } else {
           var _at = _vt - ST.audioDelay;
-          if (typeof el.seekTo === 'function') { el.seekTo(_at, true); el.setVolume(ST.vol); el.playVideo(); }
-          else { el.currentTime = _at; el.volume = ST.vol / 100; if (ST.playing) el.play().catch(function(){}); }
+          el.currentTime = _at;
+          el.volume = ST.vol / 100;
+          if (ST.playing) el.play().catch(function(){});
         }
       }
     }
